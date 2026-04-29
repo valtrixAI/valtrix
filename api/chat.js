@@ -1,10 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const GROQ_KEY = process.env.GROQ_API_KEY;
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 export default async function handler(req, res) {
   if (req.method!== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -13,53 +9,32 @@ export default async function handler(req, res) {
     const body = typeof req.body === 'string'? JSON.parse(req.body) : req.body;
     const { messages = [], userId } = body || {};
 
-    if (!messages.length) {
-      return res.status(400).json({ error: 'Aucun message reçu' });
-    }
+    if (!messages.length) return res.status(400).json({ error: 'Pas de message' });
 
-    // 1. Sauvegarde le message utilisateur
-    await supabase.from('messages').insert({
-      user_id: userId,
-      role: 'user',
-      content: messages[messages.length - 1].content
-    });
+    const userMsg = messages[messages.length - 1].content;
 
-    // 2. Récupère l'historique
-    const { data: historyData } = await supabase
-     .from('messages')
-     .select('role, content')
-     .eq('user_id', userId)
-     .order('created_at', { ascending: true })
-     .limit(20);
+    // Sauvegarde
+    await supabase.from('messages').insert({ user_id: userId, role: 'user', content: userMsg });
 
-    const history = (historyData || []).map(m => ({ role: m.role, content: m.content }));
+    // Historique
+    const { data } = await supabase.from('messages').select('role,content').eq('user_id', userId).order('created_at',{ascending:true}).limit(20);
+    const history = (data || []).map(m => ({ role: m.role, content: m.content }));
 
-    // 3. Appel Groq
-    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    // Groq
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_KEY}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'llama-3.1-8b-instant',
-        messages: [
-          { role: 'system', content: 'Tu es Valtrix, un assistant IA francophone, clair et utile.' },
-         ...history
-        ],
+        messages: [{ role: 'system', content: 'Tu es Valtrix, assistant francophone utile et concis.' },...history],
         temperature: 0.7
       })
     });
 
-    const groqData = await groqRes.json();
-    const reply = groqData.choices?.[0]?.message?.content || "Désolé, je n'ai pas de réponse.";
+    const j = await r.json();
+    const reply = j.choices?.[0]?.message?.content || "Je n'ai pas compris.";
 
-    // 4. Sauvegarde la réponse
-    await supabase.from('messages').insert({
-      user_id: userId,
-      role: 'assistant',
-      content: reply
-    });
+    await supabase.from('messages').insert({ user_id: userId, role: 'assistant', content: reply });
 
     res.status(200).json({ reply });
   } catch (e) {
