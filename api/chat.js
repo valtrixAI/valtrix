@@ -1,15 +1,51 @@
-module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Content-Type', 'application/json');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  try {
-    const { messages } = req.body;
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version':'2023-06-01' },
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1024, system:"Tu es Valtrix, assistant sympa 🐺", messages })
-    });
-    const data = await r.json();
-    return res.json(data);
-  } catch(e){ return res.status(500).json({ error: e.message }); }
-};
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+const GROQ_KEY = process.env.GROQ_API_KEY; // à ajouter dans Vercel
+const LIMIT_FREE = 20;
+
+export default async function handler(req, res) {
+  if (req.method!== 'POST') return res.status(405).end();
+
+  const { userId, conversationId, message } = req.body;
+
+  // 1. Récupère l'utilisateur
+  const { data: user } = await supabase.from('users').select('premium').eq('id', userId).single();
+
+  // 2. Compte ses messages
+  const { count } = await supabase.from('messages').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('role', 'user');
+
+  if (!user?.premium && count >= LIMIT_FREE) {
+    return res.json({ error: 'limit' });
+  }
+
+  // 3. Choisis le modèle selon Premium
+  const model = user?.premium
+   ? 'llama-3.3-70b-versatile' // Premium = cerveau
+    : 'llama-3.1-8b-instant'; // Gratuit = rapide
+
+  // 4. Appel Groq
+  const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${GROQ_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: message }],
+      temperature: 0.7
+    })
+  });
+
+  const data = await groqRes.json();
+  const reply = data.choices?.[0]?.message?.content || 'Erreur IA';
+
+  // 5. Sauvegarde
+  await supabase.from('messages').insert([
+    { user_id: userId, conversation_id: conversationId, role: 'user', content: message },
+    { user_id: userId, conversation_id: conversationId, role: 'assistant', content: reply }
+  ]);
+
+  res.json({ reply, model });
+}
