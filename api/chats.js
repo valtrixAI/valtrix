@@ -1,5 +1,5 @@
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const SUPABASE_URL = (process.env.SUPABASE_URL || '').trim();
+const SUPABASE_KEY = (process.env.SUPABASE_SERVICE_KEY || '').trim();
 
 async function supabase(path, method, body) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
@@ -8,23 +8,19 @@ async function supabase(path, method, body) {
       'Content-Type': 'application/json',
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${SUPABASE_KEY}`,
-      // FIX : PATCH → return=minimal, POST → return=representation
       'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal'
     },
     body: body ? JSON.stringify(body) : undefined
   });
+  if (!res.ok) throw new Error(await res.text());
   if (method === 'PATCH' || method === 'DELETE') return null;
   return res.json();
 }
 
-// FIX : supprime les données base64 des images avant sauvegarde (évite des payloads de plusieurs Mo)
 function stripImages(messages) {
   return messages.map(m => {
     if (typeof m.content === 'string') return m;
-    const content = m.content.map(block => {
-      if (block.type === 'image') return { type: 'text', text: '[image envoyée]' };
-      return block;
-    });
+    const content = m.content.map(b => b.type === 'image' ? { type:'text', text:'[image]' } : b);
     return { ...m, content };
   });
 }
@@ -33,51 +29,27 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Content-Type', 'application/json');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { action, user_id, chat_id, title, messages } = req.body || {};
-
-  // ── SAUVEGARDER ──
-  if (action === 'save') {
-    if (!user_id || !chat_id) return res.status(400).json({ error: 'user_id et chat_id requis' });
-
-    const cleanMessages = stripImages(messages || []);
-    const existing = await supabase(`/chats?id=eq.${chat_id}&select=id`, 'GET');
-
-    if (Array.isArray(existing) && existing.length > 0) {
-      await supabase(`/chats?id=eq.${chat_id}`, 'PATCH', {
-        title,
-        messages: cleanMessages,
-        updated_at: new Date().toISOString()
-      });
-    } else {
-      await supabase('/chats', 'POST', {
-        id: chat_id,
-        user_id,
-        title,
-        messages: cleanMessages
-      });
+  try {
+    const { action, user_id, chat_id, title, messages } = req.body || {};
+    if (action === 'save') {
+      const clean = stripImages(messages || []);
+      const ex = await supabase(`/chats?id=eq.${chat_id}&select=id`, 'GET');
+      if (ex.length) await supabase(`/chats?id=eq.${chat_id}`, 'PATCH', { title, messages: clean, updated_at: new Date().toISOString() });
+      else await supabase('/chats', 'POST', { id: chat_id, user_id, title, messages: clean });
+      return res.json({ success: true });
     }
-    return res.status(200).json({ success: true });
+    if (action === 'load') {
+      const chats = await supabase(`/chats?user_id=eq.${user_id}&select=id,title,created_at,messages&order=created_at.desc&limit=20`, 'GET');
+      return res.json({ chats });
+    }
+    if (action === 'delete') {
+      await supabase(`/chats?id=eq.${chat_id}`, 'DELETE');
+      return res.json({ success: true });
+    }
+    return res.status(400).json({ error: 'Action invalide' });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
   }
-
-  // ── CHARGER ──
-  if (action === 'load') {
-    if (!user_id) return res.status(400).json({ error: 'user_id requis' });
-    const chats = await supabase(
-      `/chats?user_id=eq.${user_id}&select=id,title,created_at,messages&order=created_at.desc&limit=20`,
-      'GET'
-    );
-    return res.status(200).json({ chats: Array.isArray(chats) ? chats : [] });
-  }
-
-  // ── SUPPRIMER ──
-  if (action === 'delete') {
-    if (!chat_id) return res.status(400).json({ error: 'chat_id requis' });
-    await supabase(`/chats?id=eq.${chat_id}`, 'DELETE');
-    return res.status(200).json({ success: true });
-  }
-
-  return res.status(400).json({ error: 'Action invalide' });
 };
