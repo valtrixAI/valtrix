@@ -1,55 +1,42 @@
-const SUPABASE_URL = (process.env.SUPABASE_URL || '').trim();
-const SUPABASE_KEY = (process.env.SUPABASE_SERVICE_KEY || '').trim();
+import { createClient } from '@supabase/supabase-js';
 
-async function supabase(path, method, body) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal'
-    },
-    body: body ? JSON.stringify(body) : undefined
-  });
-  if (!res.ok) throw new Error(await res.text());
-  if (method === 'PATCH' || method === 'DELETE') return null;
-  return res.json();
-}
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
-function stripImages(messages) {
-  return messages.map(m => {
-    if (typeof m.content === 'string') return m;
-    const content = m.content.map(b => b.type === 'image' ? { type:'text', text:'[image]' } : b);
-    return { ...m, content };
-  });
-}
-
-module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Content-Type', 'application/json');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
+export default async function handler(req, res) {
+  if (req.method!== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    const { action, user_id, chat_id, title, messages } = req.body || {};
-    if (action === 'save') {
-      const clean = stripImages(messages || []);
-      const ex = await supabase(`/chats?id=eq.${chat_id}&select=id`, 'GET');
-      if (ex.length) await supabase(`/chats?id=eq.${chat_id}`, 'PATCH', { title, messages: clean, updated_at: new Date().toISOString() });
-      else await supabase('/chats', 'POST', { id: chat_id, user_id, title, messages: clean });
-      return res.json({ success: true });
+    const body = typeof req.body === 'string'? JSON.parse(req.body) : req.body;
+    const { messages = [], userId } = body || {};
+    const userMessage = messages[messages.length - 1]?.content || '';
+
+    if (userMessage && userId) {
+      await supabase.from('messages').insert({ user_id: userId, role: 'user', content: userMessage });
     }
-    if (action === 'load') {
-      const chats = await supabase(`/chats?user_id=eq.${user_id}&select=id,title,created_at,messages&order=created_at.desc&limit=20`, 'GET');
-      return res.json({ chats });
-    }
-    if (action === 'delete') {
-      await supabase(`/chats?id=eq.${chat_id}`, 'DELETE');
-      return res.json({ success: true });
-    }
-    return res.status(400).json({ error: 'Action invalide' });
+
+    const { data: historyData } = await supabase.from('messages').select('role,content').eq('user_id', userId).order('created_at', { ascending: true }).limit(20);
+    const history = Array.isArray(historyData)? historyData : [];
+
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [{ role: 'system', content: 'Tu es Valtrix, assistant francophone utile et concis.' },...history, { role: 'user', content: userMessage }],
+        temperature: 0.7
+      })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    const reponseValtrix = data?.choices?.[0]?.message?.content || "Désolé, je n'ai pas de réponse.";
+
+    await supabase.from('messages').insert({ user_id: userId, role: 'assistant', content: reponseValtrix });
+    res.status(200).json({ reply: reponseValtrix });
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    console.error(e);
+    res.status(500).json({ error: e.message });
   }
-};
+}
