@@ -13,14 +13,11 @@ export default async function handler(req, res) {
 
     const userMsg = messages[messages.length - 1].content;
 
-    // Sauvegarde
     await supabase.from('messages').insert({ user_id: userId, role: 'user', content: userMsg });
 
-    // Historique
     const { data } = await supabase.from('messages').select('role,content').eq('user_id', userId).order('created_at',{ascending:true}).limit(20);
     const history = (data || []).map(m => ({ role: m.role, content: m.content }));
 
-    // Groq
     const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
@@ -32,7 +29,7 @@ export default async function handler(req, res) {
     });
 
     const j = await r.json();
-    const reply = j.choices?.[0]?.message?.content || "Je n'ai pas compris.";
+    const reply = j.choices?.[0]?.message?.content || "Désolé, je n'ai pas de réponse.";
 
     await supabase.from('messages').insert({ user_id: userId, role: 'assistant', content: reply });
 
