@@ -371,6 +371,9 @@ let currentChatId = null;
 let chatsCache = {};
 
 function loginSuccess(user){
+  if (!user.firstname) {
+    user.firstname = localStorage.getItem('vx_fn') || user.email.split('@')[0];
+  }
   currentUser = user;
   try { localStorage.setItem('vx_session', JSON.stringify(user)); } catch {}
   $('auth-screen').classList.add('hidden');
