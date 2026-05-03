@@ -629,6 +629,38 @@ async function sendMessage(){
 }
 
 function showPayModal(){ $('pay-modal').classList.add('show'); closeSidebar(); }
+// === ADMIN VALTRIX ===
+const SUPABASE_URL = 'https://lzcqhpxzvnhndmtckslx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6Y3FocHh6dm5obmRtdGNrc2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxODQ2NTIsImV4cCI6MjA2MTc2MDY1Mn0._-eLJJ4tHmiOjKq6nVUdU4_6RoudpW7H7_wRY80lQfE';
+const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const ADMIN_EMAIL = 'charlyvangrim@gmail.com';
+
+async function initAdmin(){
+  checkMaintenance(); 
+  setInterval(checkMaintenance,5000);
+  if(currentUser && currentUser.email===ADMIN_EMAIL){
+    document.getElementById('adminPanel').style.display='block';
+  }
+}
+async function checkMaintenance(){
+  try{
+    const {data}=await supa.from('app_settings').select('*').eq('id',1).single();
+    if(!data) return;
+    document.getElementById('maintenanceToggle').checked=data.maintenance_mode;
+    const isAdmin=currentUser && currentUser.email===ADMIN_EMAIL;
+    if(data.maintenance_mode && !isAdmin){
+      document.getElementById('maintenanceOverlay').style.display='flex';
+      document.body.style.filter='blur(5px)'; document.body.style.pointerEvents='none';
+    }else{
+      document.getElementById('maintenanceOverlay').style.display='none';
+      document.body.style.filter=''; document.body.style.pointerEvents='';
+    }
+  }catch(e){ console.log(e); }
+}
+async function makeMePremium(){ currentUser.premium=true; localStorage.setItem('vx_session',JSON.stringify(currentUser)); alert('✅ Premium activé'); location.reload(); }
+async function addCredits(){ const e=document.getElementById('userEmail').value; const c=document.getElementById('msgCount').value; alert('+'+c+' pour '+e); }
+async function toggleMaintenance(){ await supa.from('app_settings').update({maintenance_mode:document.getElementById('maintenanceToggle').checked}).eq('id',1); }
+const _oldLogin=loginSuccess; loginSuccess=function(u){ _oldLogin(u); setTimeout(initAdmin,400); };
 </script>
 </body>
 </html>
