@@ -335,6 +335,7 @@ async function doAuth(){
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       pendingEmail = email;
+      localStorage.setItem('vx_fn', fn);
       $('verify-email-display').textContent = email;
       $('auth-screen').classList.add('hidden');
       $('verify-screen').classList.remove('hidden');
