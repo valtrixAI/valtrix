@@ -636,31 +636,77 @@ const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const ADMIN_EMAIL = 'charlyvangrim@gmail.com';
 
 async function initAdmin(){
-  checkMaintenance(); 
-  setInterval(checkMaintenance,5000);
-  if(currentUser && currentUser.email===ADMIN_EMAIL){
-    document.getElementById('adminPanel').style.display='block';
+  try {
+    const {data} = await supa.from('app_settings').select('*').eq('id',1).single();
+    if(data){
+      document.getElementById('maintenanceToggle').checked = data.maintenance_mode;
+    }
+  } catch(e){}
+  
+  if(currentUser && currentUser.email === ADMIN_EMAIL){
+    document.getElementById('adminPanel').style.display = 'block';
   }
+  checkMaintenance();
+  setInterval(checkMaintenance, 5000);
 }
+
 async function checkMaintenance(){
   try{
-    const {data}=await supa.from('app_settings').select('*').eq('id',1).single();
-    if(!data) return;
-    document.getElementById('maintenanceToggle').checked=data.maintenance_mode;
-    const isAdmin=currentUser && currentUser.email===ADMIN_EMAIL;
-    if(data.maintenance_mode && !isAdmin){
-      document.getElementById('maintenanceOverlay').style.display='flex';
-      document.body.style.filter='blur(5px)'; document.body.style.pointerEvents='none';
-    }else{
-      document.getElementById('maintenanceOverlay').style.display='none';
-      document.body.style.filter=''; document.body.style.pointerEvents='';
+    const {data} = await supa.from('app_settings').select('*').eq('id',1).single();
+    const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+    if(data && data.maintenance_mode && !isAdmin){
+      document.getElementById('maintenanceOverlay').style.display = 'flex';
+      document.body.style.pointerEvents = 'none';
+    } else {
+      document.getElementById('maintenanceOverlay').style.display = 'none';
+      document.body.style.pointerEvents = '';
     }
-  }catch(e){ console.log(e); }
+  }catch(e){}
 }
-async function makeMePremium(){ currentUser.premium=true; localStorage.setItem('vx_session',JSON.stringify(currentUser)); alert('✅ Premium activé'); location.reload(); }
-async function addCredits(){ const e=document.getElementById('userEmail').value; const c=document.getElementById('msgCount').value; alert('+'+c+' pour '+e); }
-async function toggleMaintenance(){ await supa.from('app_settings').update({maintenance_mode:document.getElementById('maintenanceToggle').checked}).eq('id',1); }
-const _oldLogin=loginSuccess; loginSuccess=function(u){ _oldLogin(u); setTimeout(initAdmin,400); };
+
+async function makeMePremium(){
+  if(!currentUser) return;
+  currentUser.premium = true;
+  localStorage.setItem('vx_session', JSON.stringify(currentUser));
+  if(typeof updatePlanDisplay === 'function') updatePlanDisplay();
+  alert('✅ Premium activé - le panel reste ouvert');
+  initAdmin();
+}
+
+async function addCredits(){
+  const email = document.getElementById('userEmail').value.trim();
+  const count = parseInt(document.getElementById('msgCount').value);
+  if(!email || !count) return alert('Mets un email et un nombre');
+  
+  const {error} = await supa.from('users_pro').upsert({ 
+    email: email, 
+    free_messages: count,
+    updated_at: new Date().toISOString()
+  });
+  
+  if(error) alert('Erreur: ' + error.message);
+  else alert('✅ +' + count + ' messages pour ' + email);
+}
+
+async function toggleMaintenance(){
+  const on = document.getElementById('maintenanceToggle').checked;
+  await supa.from('app_settings').update({ maintenance_mode: on }).eq('id',1);
+}
+
+// Lance au login ET au rechargement
+const _oldLogin = loginSuccess;
+loginSuccess = function(u){ 
+  _oldLogin(u); 
+  setTimeout(initAdmin, 400); 
+};
+
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('vx_session');
+  if(saved){
+    currentUser = JSON.parse(saved);
+    setTimeout(initAdmin, 600);
+  }
+});
 </script>
 </body>
 </html>
