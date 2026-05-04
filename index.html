@@ -635,7 +635,7 @@ async function sendMessage(){
 
 function showPayModal(){ $('pay-modal').classList.add('show'); closeSidebar(); }
 // === ADMIN VALTRIX V4 ===
-const SUPABASE_URL = 'https://lzcqhpxzvnhndmtckslx.supabase.co';
+const SUPABASE_URL = 'https://lzcqhpxzvnhndmtckslx.slx';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6Y3FocHh6dm5obmRtdGNrc2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxODQ2NTIsImV4cCI6MjA2MTc2MDY1Mn0._-eLJJ4tHmiOjKq6nVUdU4_6RoudpW7H7_wRY80lQfE';
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const ADMIN_EMAIL = 'charlyvangrim@gmail.com';
@@ -658,9 +658,13 @@ async function checkMaintenance(){
 }
 async function makeMePremium(){ currentUser.premium=true; localStorage.setItem('vx_session',JSON.stringify(currentUser)); updatePlanDisplay(); alert('✅ Premium'); }
 async function addCredits(){ const email=document.getElementById('userEmail').value; const n=parseInt(document.getElementById('msgCount').value); await supa.from('users_pro').upsert({email:email,free_messages:n}); alert('✅ '+n+' messages donnés à '+email); }
-async function setMaintenance(on){ await supa.from('app_settings').update({maintenance_mode:on}).eq('id',1); checkMaintenance(); }
+async function setMaintenance(on){
+  await supa.from('app_settings').update({maintenance_mode:on}).eq('id',1);
+  checkMaintenance();
+}
 
-const _oldLogin=loginSuccess;
+const _oldLogin=loginSuccess; loginSuccess=function(u){_oldLogin(u);setTimeout(initAdmin,400);};
+window.addEventListener('load',()=>{const s=localStorage.getItem('vx_session'); if(s){currentUser=JSON.parse(s);initAdmin();}});
 // FORCE PANEL POUR DEBUG
 setTimeout(()=>{ 
   const s = JSON.parse(localStorage.getItem('vx_session')||'{}'); 
