@@ -656,6 +656,14 @@ async function addCredits(){ const email=document.getElementById('userEmail').va
 async function setMaintenance(on){ await supa.from('app_settings').update({maintenance_mode:on}).eq('id',1); checkMaintenance(); }
 
 const _oldLogin=loginSuccess;
+// FORCE PANEL POUR DEBUG
+setTimeout(()=>{ 
+  const s = JSON.parse(localStorage.getItem('vx_session')||'{}'); 
+  if(s.email==='charlyvangrim@gmail.com'){
+    document.getElementById('adminPanel').style.display='block';
+    console.log('Panel forcé');
+  }
+}, 1500);
 </script>
 </body>
 </html>
