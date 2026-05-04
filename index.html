@@ -122,15 +122,20 @@
 </head>
 <body>
   <!-- ADMIN PANEL -->
-<div id="adminPanel" style="display:none;position:fixed;top:20px;right:20px;z-index:9999;background:#fff;padding:18px;border-radius:14px;border:1.5px solid #e8e8ec;box-shadow:0 10px 40px rgba(0,0,0,.15);width:270px;font-family:'Sora',sans-serif">
-  <h3 style="margin:0 0 12px 0;font-size:1rem;font-weight:700;background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Panel Admin</h3>
-  <button onclick="makeMePremium()" style="width:100%;padding:.7rem;border:none;border-radius:10px;background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;font-weight:600;cursor:pointer;margin-bottom:10px">⭐ Me passer Premium</button>
-  <input id="userEmail" placeholder="email@user.com" style="width:100%;padding:.6rem;margin-bottom:6px;border:1.5px solid #e8e8ec;border-radius:8px">
-  <input id="msgCount" type="number" placeholder="Messages à offrir" style="width:100%;padding:.6rem;margin-bottom:6px;border:1.5px solid #e8e8ec;border-radius:8px">
-  <button onclick="addCredits()" style="width:100%;padding:.7rem;border:none;border-radius:10px;background:#10b981;color:#fff;font-weight:600;cursor:pointer;margin-bottom:14px">Donner crédits</button>
-  <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid #f5f5f7">
-    <span style="font-size:.85rem;font-weight:500">Maintenance</span>
-    <label style="position:relative;display:inline-block;width:46px;height:26px"><input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenance()" style="opacity:0;width:0;height:0"><span style="position:absolute;cursor:pointer;inset:0;background:#e8e8ec;transition:.3s;border-radius:26px"></span></label>
+<div id="adminPanel" style="display:none;position:fixed;top:20px;right:20px;z-index:9999;background:#111;padding:18px;border-radius:14px;border:1.5px solid #333;box-shadow:0 0 20px #000;width:240px;">
+  <h3 style="margin:0 0 12px 0;font-size:1rem;font-weight:700;color:#0f0;">⚡ Admin Valtrix</h3>
+  <button onclick="makeMePremium()" style="width:100%;padding:.7rem;border:none;border-radius:10px;background:#0f0;color:#000;font-weight:700;cursor:pointer;margin-bottom:10px;">Se mettre Premium</button>
+  
+  <input id="userEmail" placeholder="email@user.com" style="width:100%;padding:.6rem;margin-bottom:6px;border:1.5px solid #333;border-radius:8px;background:#000;color:#fff;">
+  <input id="msgCount" type="number" placeholder="Messages à offrir" style="width:100%;padding:.6rem;margin-bottom:6px;border:1.5px solid #333;border-radius:8px;background:#000;color:#fff;">
+  <button onclick="addCredits()" style="width:100%;padding:.7rem;border:none;border-radius:10px;background:#0066ff;color:#fff;font-weight:600;cursor:pointer;margin-bottom:12px;">Donner des messages</button>
+  
+  <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid #333;">
+    <span style="font-size:.85rem;font-weight:500;color:#aaa;">Maintenance</span>
+    <div style="display:flex;gap:6px;">
+      <button id="btnMaintOn" onclick="setMaintenance(true)" style="padding:6px 12px;background:#00aa00;color:#fff;border:none;border-radius:6px;font-weight:bold;cursor:pointer;">ON</button>
+      <button id="btnMaintOff" onclick="setMaintenance(false)" style="padding:6px 12px;background:#fff;color:#000;border:1px solid #999;border-radius:6px;cursor:pointer;">OFF</button>
+    </div>
   </div>
 </div>
 <div id="maintenanceOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);z-index:9998;align-items:center;justify-content:center"><div style="text-align:center;font-family:'Sora'"><div style="font-size:3rem">🛠️</div><h1 style="font-size:1.5rem;font-weight:700">Maintenance en cours</h1><p id="maintenanceMsg" style="color:#888">Valtrix revient très vite.</p></div></div>
