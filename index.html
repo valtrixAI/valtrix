@@ -635,29 +635,58 @@ async function sendMessage(){
 
 function showPayModal(){ $('pay-modal').classList.add('show'); closeSidebar(); }
 // === ADMIN VALTRIX V4 ===
-const SUPABASE_URL = 'https://lzcqhpxzvnhndmtckslx.slx';
+const SUPABASE_URL = 'https://lzcqhpxzvnhndmtckslx.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6Y3FocHh6dm5obmRtdGNrc2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxODQ2NTIsImV4cCI6MjA2MTc2MDY1Mn0._-eLJJ4tHmiOjKq6nVUdU4_6RoudpW7H7_wRY80lQfE';
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const ADMIN_EMAIL = 'charlyvangrim@gmail.com';
 
 async function initAdmin(){
   if(currentUser){
-    const {data} = await supa.from('users_pro').select('free_messages').eq('email', currentUser.email).single();
-    if(data) currentUser.freeCredits = data.free_messages;
+    const {data} = await supa.from('users_pro').select('free_messages,is_premium').eq('email', currentUser.email).maybeSingle();
+    if(data){ 
+      currentUser.freeCredits = data.free_messages || 0;
+      currentUser.premium = data.is_premium || false;
+    }
   }
   if(currentUser?.email === ADMIN_EMAIL) document.getElementById('adminPanel').style.display='block';
   checkMaintenance(); setInterval(checkMaintenance,3000);
 }
+
 async function checkMaintenance(){
-  const {data} = await supa.from('app_settings').select('*').eq('id',1).single();
+  const {data} = await supa.from('app_settings').select('*').eq('id',1).maybeSingle();
   if(!data) return;
   document.getElementById('btnMaintOn').style.background = data.maintenance_mode ? '#00ff00' : '#00aa00';
   document.getElementById('btnMaintOff').style.background = data.maintenance_mode ? '#fff' : '#ddd';
   const isAdmin = currentUser?.email === ADMIN_EMAIL;
   document.getElementById('maintenanceOverlay').style.display = (data.maintenance_mode && !isAdmin) ? 'flex' : 'none';
 }
-async function makeMePremium(){ currentUser.premium=true; localStorage.setItem('vx_session',JSON.stringify(currentUser)); updatePlanDisplay(); alert('✅ Premium'); }
-async function addCredits(){ const email=document.getElementById('userEmail').value; const n=parseInt(document.getElementById('msgCount').value); await supa.from('users_pro').upsert({email:email,free_messages:n}); alert('✅ '+n+' messages donnés à '+email); }
+
+async function makeMePremium(){ 
+  await supa.from('users_pro').update({is_premium:true}).eq('email', currentUser.email);
+  currentUser.premium=true; 
+  localStorage.setItem('vx_session',JSON.stringify(currentUser)); 
+  updatePlanDisplay(); 
+  alert('✅ Premium activé'); 
+}
+
+async function addCredits(){
+  const email=document.getElementById('userEmail').value.trim(); 
+  const n=parseInt(document.getElementById('msgCount').value);
+  if(!email || !n) return alert('Email + nombre requis');
+  
+  const {data:u} = await supa.from('users_pro').select('*').eq('email',email).maybeSingle();
+  
+  if(u){
+    const total = (u.free_messages || 0) + n;
+    await supa.from('users_pro').update({free_messages: total}).eq('email', email);
+    if(currentUser?.email === email){ currentUser.freeCredits = total; updatePlanDisplay(); }
+    alert('✅ +'+n+' messages pour '+email+' (total: '+total+')');
+  } else {
+    await supa.from('users_pro').insert({id:'user-'+Date.now(), email:email, free_messages:n, is_premium:false, is_admin:false});
+    alert('✅ Compte créé avec '+n+' messages pour '+email);
+  }
+}
+
 async function setMaintenance(on){
   await supa.from('app_settings').update({maintenance_mode:on}).eq('id',1);
   checkMaintenance();
