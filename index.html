@@ -604,7 +604,8 @@ async function sendMessage(){
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         messages: history,
-        userId: currentUser?.id
+        userId: currentUser?.id,
+chat_id: currentChatId
       })
     });
     if (!res.ok) throw new Error(`Erreur serveur ${res.status}`);
