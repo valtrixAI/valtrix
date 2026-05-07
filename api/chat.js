@@ -73,6 +73,36 @@ export default async function handler(req, res) {
 
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: e.message });
+   // Après avoir sauvegardé la réponse, sauvegarder la conversation
+const chatId = body.chat_id || userId + '_' + Date.now();
+const title = (userMessage || 'Chat').substring(0, 40);
+
+const { data: existing } = await supabase
+  .from('chats')
+  .select('id')
+  .eq('id', chatId)
+  .maybeSingle();
+
+if (existing) {
+  await supabase.from('chats').update({
+    messages: history.concat(
+      {role:'user', content: userMessage},
+      {role:'assistant', content: reponseValtrix}
+    ),
+    updated_at: new Date().toISOString()
+  }).eq('id', chatId);
+} else {
+  await supabase.from('chats').insert({
+    id: chatId,
+    user_id: userId,
+    title,
+    messages: history.concat(
+      {role:'user', content: userMessage},
+      {role:'assistant', content: reponseValtrix}
+    )
+  });
+}
+
+res.status(200).json({ reply: reponseValtrix, chat_id: chatId });
   }
 }
