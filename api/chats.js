@@ -1,40 +1,66 @@
 import { createClient } from '@supabase/supabase-js';
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 export default async function handler(req, res) {
-  if (req.method!== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  try {
-    const body = typeof req.body === 'string'? JSON.parse(req.body) : req.body;
-    const { messages = [], userId } = body || {};
-    const userMessage = messages[messages.length - 1]?.content || '';
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    if (userMessage && userId) {
-      await supabase.from('messages').insert({ user_id: userId, role: 'user', content: userMessage });
+  try {
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const { action, user_id, chat_id, title, messages } = body || {};
+
+    // ── SAUVEGARDER ──
+    if (action === 'save') {
+      if (!user_id || !chat_id) return res.status(400).json({ error: 'user_id et chat_id requis' });
+
+      const { data: existing } = await supabase
+        .from('chats')
+        .select('id')
+        .eq('id', chat_id)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase.from('chats').update({
+          title,
+          messages,
+          updated_at: new Date().toISOString()
+        }).eq('id', chat_id);
+      } else {
+        await supabase.from('chats').insert({
+          id: chat_id,
+          user_id,
+          title,
+          messages
+        });
+      }
+      return res.status(200).json({ success: true });
     }
 
-    const { data: historyData } = await supabase.from('messages').select('role,content').eq('user_id', userId).order('created_at', { ascending: true }).limit(20);
-    const history = Array.isArray(historyData)? historyData : [];
+    // ── CHARGER ──
+    if (action === 'load') {
+      if (!user_id) return res.status(400).json({ error: 'user_id requis' });
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: [{ role: 'system', content: 'Tu es Valtrix, assistant francophone utile et concis.' },...history, { role: 'user', content: userMessage }],
-        temperature: 0.7
-      })
-    });
+      const { data: chats } = await supabase
+        .from('chats')
+        .select('id,title,created_at,messages')
+        .eq('user_id', user_id)
+        .order('created_at', { ascending: false })
+        .limit(20);
 
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-    const reponseValtrix = data?.choices?.[0]?.message?.content || "Désolé, je n'ai pas de réponse.";
+      return res.status(200).json({ chats: chats || [] });
+    }
 
-    await supabase.from('messages').insert({ user_id: userId, role: 'assistant', content: reponseValtrix });
-    res.status(200).json({ reply: reponseValtrix });
+    // ── SUPPRIMER ──
+    if (action === 'delete') {
+      if (!chat_id) return res.status(400).json({ error: 'chat_id requis' });
+      await supabase.from('chats').delete().eq('id', chat_id);
+      return res.status(200).json({ success: true });
+    }
+
+    return res.status(400).json({ error: 'Action invalide' });
+
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: e.message });
