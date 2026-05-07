@@ -660,6 +660,8 @@ async function checkMaintenance() {
   } catch {}
 }
 
+// Vérifie toutes les 5 secondes
+setInterval(checkMaintenance, 5000);
 async function makeMePremium() {
   try {
     const res = await fetch('/api/admin', {
