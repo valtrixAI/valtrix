@@ -653,8 +653,10 @@ async function checkMaintenance() {
     });
     const data = await res.json();
     const isAdmin = currentUser?.email === ADMIN_EMAIL;
-    document.getElementById('maintenanceOverlay').style.display =
-      (data.maintenance && !isAdmin) ? 'flex' : 'none';
+    const overlay = document.getElementById('maintenanceOverlay');
+    if (overlay) {
+      overlay.style.display = (data.maintenance && !isAdmin) ? 'flex' : 'none';
+    }
   } catch {}
 }
 
