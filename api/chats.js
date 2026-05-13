@@ -11,33 +11,71 @@ module.exports = async function handler(req, res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const { action, user_id, chat_id, title, messages } = body || {};
 
-    // ── SAUVEGARDER ──
     if (action === 'save') {
-      if (!user_id || !chat_id) return res.status(400).json({ error: 'user_id et chat_id requis' });
 
-      const { data: existing } = await supabase
-        .from('chats')
-        .select('id')
-        .eq('id', chat_id)
-        .maybeSingle();
+  if (!user_id || !chat_id) {
+    return res.status(400).json({
+      error: 'user_id et chat_id requis'
+    });
+  }
 
-      if (existing) {
-        await supabase.from('chats').update({
-          title,
-          messages,
-          updated_at: new Date().toISOString()
-        }).eq('id', chat_id);
-      } else {
-        await supabase.from('chats').insert({
-          id: chat_id,
-          user_id,
-          title,
-          messages
-        });
-      }
-      return res.status(200).json({ success: true });
+  // Vérifie si le chat existe
+  const { data: existing, error: findError } = await supabase
+    .from('chats')
+    .select('id')
+    .eq('id', chat_id)
+    .maybeSingle();
+
+  if (findError) {
+    console.error(findError);
+    return res.status(500).json({
+      error: findError.message
+    });
+  }
+
+  // UPDATE
+  if (existing) {
+
+    const { error: updateError } = await supabase
+      .from('chats')
+      .update({
+        title: title || 'Chat',
+        messages: messages || [],
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', chat_id);
+
+    if (updateError) {
+      console.error(updateError);
+      return res.status(500).json({
+        error: updateError.message
+      });
     }
 
+  } else {
+
+    // INSERT
+    const { error: insertError } = await supabase
+      .from('chats')
+      .insert({
+        id: chat_id,
+        user_id,
+        title: title || 'Chat',
+        messages: messages || []
+      });
+
+    if (insertError) {
+      console.error(insertError);
+      return res.status(500).json({
+        error: insertError.message
+      });
+    }
+  }
+
+  return res.status(200).json({
+    success: true
+  });
+}
     // ── CHARGER ──
     if (action === 'load') {
       if (!user_id) return res.status(400).json({ error: 'user_id requis' });
