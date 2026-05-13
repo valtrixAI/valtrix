@@ -6,100 +6,83 @@ const supabase = createClient(
 );
 
 module.exports = async function handler(req, res) {
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const { action, user_id, chat_id, title, messages } = body;
 
-    const body = typeof req.body === 'string'
-      ? JSON.parse(req.body)
-      : req.body;
-
-    const {
-      action,
-      user_id,
-      chat_id,
-      title,
-      messages
-    } = body;
-
-    console.log("API CHATS BODY =", body); // 👈 DEBUG IMPORTANT
+    console.log("API CHATS BODY =", { action, user_id, chat_id });
 
     // ───── SAVE ─────
     if (action === 'save') {
-
       if (!user_id || !chat_id) {
-        return res.status(400).json({
-          error: 'missing user_id or chat_id'
-        });
+        return res.status(400).json({ error: 'missing user_id or chat_id' });
       }
 
-      const { data: existing, error: findError } = await supabase
+      const { error } = await supabase
         .from('chats')
-        .select('id')
-        .eq('id', chat_id)
-        .maybeSingle();
+        .upsert({
+          id: chat_id,
+          user_id,
+          title: title || 'Chat',
+          messages: messages || [],
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
 
-      if (findError) {
-        console.log("FIND ERROR:", findError);
-        return res.status(500).json({ error: findError.message });
-      }
-
-      if (existing) {
-
-        const { error: updateError } = await supabase
-          .from('chats')
-          .update({
-            title: title || 'Chat',
-            messages: messages || [],
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', chat_id);
-
-        if (updateError) {
-          console.log("UPDATE ERROR:", updateError);
-          return res.status(500).json({ error: updateError.message });
-        }
-
-      } else {
-
-        const { error: insertError } = await supabase
-          .from('chats')
-          .insert({
-            id: chat_id,
-            user_id,
-            title: title || 'Chat',
-            messages: messages || [],
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-
-        if (insertError) {
-          console.log("INSERT ERROR:", insertError);
-          return res.status(500).json({ error: insertError.message });
-        }
-      }
-
+      if (error) return res.status(500).json({ error: error.message });
       return res.status(200).json({ success: true });
     }
 
     // ───── LOAD ─────
     if (action === 'load') {
-
+      if (!user_id) return res.status(400).json({ error: 'missing user_id' });
+      
       const { data, error } = await supabase
         .from('chats')
         .select('*')
         .eq('user_id', user_id)
         .order('updated_at', { ascending: false });
 
-      if (error) {
-        console.log("LOAD ERROR:", error);
-        return res.status(500).json({ error: error.message });
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ chats: data || [] });
+    }
+
+    // ───── DELETE ─────
+    if (action === 'delete') {
+      if (!user_id || !chat_id) {
+        return res.status(400).json({ error: 'missing user_id or chat_id' });
       }
 
-      return res.status(200).json({ chats: data || [] });
+      const { error } = await supabase
+        .from('chats')
+        .delete()
+        .eq('id', chat_id)
+        .eq('user_id', user_id);
+
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true });
+    }
+
+    // ───── RENAME ─────
+    if (action === 'rename') {
+      if (!user_id || !chat_id || !title) {
+        return res.status(400).json({ error: 'missing user_id, chat_id or title' });
+      }
+
+      const { error } = await supabase
+        .from('chats')
+        .update({ 
+          title,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', chat_id)
+        .eq('user_id', user_id);
+
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true });
     }
 
     return res.status(400).json({ error: 'Invalid action' });
