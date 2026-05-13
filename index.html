@@ -117,6 +117,17 @@
     .pay-features { text-align: left; font-size: .85rem; display: flex; flex-direction: column; gap: .4rem; color: var(--muted); list-style: none; }
     .pay-features li::before { content: '✓ '; color: var(--g1); font-weight: 700; }
     .pay-close { background: none; border: none; font-size: .82rem; color: var(--muted); cursor: pointer; }
+    .chat-item-row { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .chat-info { flex: 1; min-width: 0; cursor: pointer; }
+    .chat-menu-btn { opacity: 0; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 1.2rem; color: var(--muted); }
+    .chat-item:hover .chat-menu-btn { opacity: 1; }
+    .chat-menu-btn:hover { background: var(--border); }
+    .chat-menu { position: absolute; right: 0; top: 2.2rem; background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.15); z-index: 100; min-width: 140px; display: none; }
+    .chat-menu.show { display: block; }
+    .chat-menu button { display: block; width: 100%; text-align: left; padding: .6rem .9rem; border: none; background: none; font-family: var(--font); font-size: .82rem; cursor: pointer; }
+    .chat-menu button:hover { background: var(--surface); }
+    .chat-menu button:first-child { border-radius: 8px 8px 0 0; }
+    .chat-menu button:last-child { border-radius: 0 0 8px 8px; color: #dc2626; } 
   </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
