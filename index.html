@@ -455,27 +455,54 @@ function renderChatList(chats){
     return;
   }
   list.innerHTML = chats.map(c => `
-    <div class="chat-item">
-      <div class="chat-item-row">
-        <div class="chat-info" onclick="loadChatById('${c.id}')">
+    <div class="chat-item" style="position:relative">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:.7rem 1rem;cursor:pointer;border-bottom:1px solid var(--surface)" onmouseover="this.querySelector('.chat-btn').style.opacity=1" onmouseout="this.querySelector('.chat-btn').style.opacity=0">
+        <div onclick="loadChatById('${c.id}')" style="flex:1;min-width:0">
           <div class="ci-t">${esc(c.title || 'Chat')}</div>
           <div class="ci-d">${new Date(c.created_at).toLocaleDateString('fr-FR')}</div>
         </div>
-        <button class="chat-menu-btn" onclick="toggleChatMenu(event, '${c.id}')">⋮</button>
-        <div id="chat-menu-${c.id}" class="chat-menu">
-          <button onclick="renameChatAction('${c.id}', '${c.user_id}')">✏️ Renommer</button>
-          <button onclick="deleteChatAction('${c.id}', '${c.user_id}')">🗑️ Supprimer</button>
+        <button class="chat-btn" onclick="event.stopPropagation();toggleChatMenu('${c.id}')" style="opacity:0;background:none;border:none;cursor:pointer;padding:4px;font-size:1.1rem">⋮</button>
+        <div id="chat-menu-${c.id}" style="display:none;position:absolute;right:1rem;top:2.2rem;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:10;min-width:140px">
+          <button onclick="renameChatAction('${c.id}', '${c.user_id}')" style="display:block;width:100%;text-align:left;padding:.6rem .9rem;border:none;background:none;font-family:var(--font);font-size:.82rem;cursor:pointer">✏️ Renommer</button>
+          <button onclick="deleteChatAction('${c.id}', '${c.user_id}')" style="display:block;width:100%;text-align:left;padding:.6rem .9rem;border:none;background:none;font-family:var(--font);font-size:.82rem;cursor:pointer;color:#dc2626">🗑️ Supprimer</button>
         </div>
       </div>
     </div>
   `).join('');
 }
-  list.innerHTML = chats.map(c => `
-    <div class="chat-item" data-chat-id="${esc(c.id)}" onclick="loadChatById(this.dataset.chatId)">
-      <div class="ci-t">${esc(c.title || 'Chat')}</div>
-      <div class="ci-d">${new Date(c.created_at).toLocaleDateString('fr-FR')}</div>
-    </div>
-  `).join('');
+
+function toggleChatMenu(chatId) {
+  document.querySelectorAll('[id^="chat-menu-"]').forEach(m => m.style.display = 'none');
+  const menu = $(`chat-menu-${chatId}`);
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.chat-btn')) {
+    document.querySelectorAll('[id^="chat-menu-"]').forEach(m => m.style.display = 'none');
+  }
+});
+
+async function deleteChatAction(chatId, userId) {
+  if (!confirm('Supprimer ce chat ?')) return;
+  await fetch('/api/chats', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'delete', user_id: userId, chat_id: chatId })
+  });
+  if (currentChatId === chatId) startNewChat();
+  loadChatHistory();
+}
+
+async function renameChatAction(chatId, userId) {
+  const newTitle = prompt('Nouveau nom du chat :');
+  if (!newTitle?.trim()) return;
+  await fetch('/api/chats', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'rename', user_id: userId, chat_id: chatId, title: newTitle.trim() })
+  });
+  loadChatHistory();
 }
 
 function loadChatById(id){
