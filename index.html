@@ -128,14 +128,71 @@
     .chat-menu button:hover { background: var(--surface); }
     .chat-menu button:first-child { border-radius: 8px 8px 0 0; }
     .chat-menu button:last-child { border-radius: 0 0 8px 8px; color: #dc2626; } 
- .code-block { background: #1e1e1e; border-radius: 10px; margin:.5rem 0; overflow: hidden; }
-.code-header { display: flex; justify-content: space-between; align-items: center; background: #2d2d2d; padding:.5rem.8rem; color: #9ca3af; font-size:.75rem; }
-.code-lang { font-weight: 600; text-transform: uppercase; }
-.code-copy { background: none; border: 1px solid #4b5563; color: #9ca3af; padding:.2rem.5rem; border-radius: 6px; cursor: pointer; font-size:.7rem; }
-.code-copy:hover { background: #374151; color: #fff; }
-.code-content { padding:.8rem; overflow-x: auto; }
-.code-content pre { margin: 0; font-family: 'Consolas', 'Monaco', monospace; font-size:.82rem; line-height: 1.5; color: #e5e7eb; }
-.code-content code { font-family: inherit; }
+.code-block { 
+  background: #fff; 
+  border: 1px solid #e5e7eb; 
+  border-radius: 10px; 
+  margin:.8rem 0; 
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+.code-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  background: #f8fafc; 
+  padding:.6rem.9rem; 
+  color: #475569; 
+  font-size:.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+.code-lang { 
+  font-weight: 600; 
+  text-transform: uppercase;
+  color: #6366f1;
+}
+.code-copy { 
+  background: #fff; 
+  border: 1px solid #e5e7eb; 
+  color: #64748b; 
+  padding:.3rem.6rem; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  font-size:.7rem;
+  font-family: var(--font);
+}
+.code-copy:hover { 
+  background: #f1f5f9; 
+  border-color: #6366f1;
+  color: #6366f1;
+}
+.code-content { 
+  padding: 1rem; 
+  overflow-x: auto;
+  background: #fff;
+}
+.code-content pre { 
+  margin: 0; 
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace; 
+  font-size:.85rem; 
+  line-height: 1.6;
+  background: transparent!important;
+}
+.code-content code { 
+  font-family: inherit;
+  background: transparent!important;
+}
+
+/* Responsive PC - plus large sur grand écran */
+@media (min-width: 1024px) {
+ .code-block { 
+    max-width: 100%;
+  }
+ .code-content pre { 
+    font-size:.9rem; 
+  }
+}
   </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
