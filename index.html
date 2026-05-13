@@ -128,6 +128,14 @@
     .chat-menu button:hover { background: var(--surface); }
     .chat-menu button:first-child { border-radius: 8px 8px 0 0; }
     .chat-menu button:last-child { border-radius: 0 0 8px 8px; color: #dc2626; } 
+ .code-block { background: #1e1e1e; border-radius: 10px; margin:.5rem 0; overflow: hidden; }
+.code-header { display: flex; justify-content: space-between; align-items: center; background: #2d2d2d; padding:.5rem.8rem; color: #9ca3af; font-size:.75rem; }
+.code-lang { font-weight: 600; text-transform: uppercase; }
+.code-copy { background: none; border: 1px solid #4b5563; color: #9ca3af; padding:.2rem.5rem; border-radius: 6px; cursor: pointer; font-size:.7rem; }
+.code-copy:hover { background: #374151; color: #fff; }
+.code-content { padding:.8rem; overflow-x: auto; }
+.code-content pre { margin: 0; font-family: 'Consolas', 'Monaco', monospace; font-size:.82rem; line-height: 1.5; color: #e5e7eb; }
+.code-content code { font-family: inherit; }
   </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
