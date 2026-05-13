@@ -455,6 +455,22 @@ function renderChatList(chats){
     return;
   }
   list.innerHTML = chats.map(c => `
+    <div class="chat-item">
+      <div class="chat-item-row">
+        <div class="chat-info" onclick="loadChatById('${c.id}')">
+          <div class="ci-t">${esc(c.title || 'Chat')}</div>
+          <div class="ci-d">${new Date(c.created_at).toLocaleDateString('fr-FR')}</div>
+        </div>
+        <button class="chat-menu-btn" onclick="toggleChatMenu(event, '${c.id}')">⋮</button>
+        <div id="chat-menu-${c.id}" class="chat-menu">
+          <button onclick="renameChatAction('${c.id}', '${c.user_id}')">✏️ Renommer</button>
+          <button onclick="deleteChatAction('${c.id}', '${c.user_id}')">🗑️ Supprimer</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+  list.innerHTML = chats.map(c => `
     <div class="chat-item" data-chat-id="${esc(c.id)}" onclick="loadChatById(this.dataset.chatId)">
       <div class="ci-t">${esc(c.title || 'Chat')}</div>
       <div class="ci-d">${new Date(c.created_at).toLocaleDateString('fr-FR')}</div>
