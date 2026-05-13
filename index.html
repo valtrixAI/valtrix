@@ -583,9 +583,60 @@ function addAiMsg(text){
   const msgs = $('messages');
   const div = document.createElement('div');
   div.className = 'msg ai';
-  div.innerHTML = `<div class="bubble">${esc(text)}</div><span class="ts">${nowTime()}</span>`;
+  
+  // Détecte les blocs ```lang... ```
+  const codeRegex = /```(\w+)?\n([\s\S]*?)```/g;
+  let processedText = esc(text);
+  let match;
+  let parts = [];
+  let lastIndex = 0;
+  
+  while ((match = codeRegex.exec(text))!== null) {
+    // Texte avant le code
+    if (match.index > lastIndex) {
+      const beforeText = text.substring(lastIndex, match.index);
+      parts.push(`<div class="bubble">${esc(beforeText)}</div>`);
+    }
+    
+    // Bloc de code
+    const lang = match[1] || 'code';
+    const code = match[2];
+    const codeId = 'code-' + Date.now() + Math.random();
+    parts.push(`
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">${esc(lang)}</span>
+          <button class="code-copy" onclick="copyCode('${codeId}')">Copier</button>
+        </div>
+        <div class="code-content">
+          <pre><code id="${codeId}">${esc(code)}</code></pre>
+        </div>
+      </div>
+    `);
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Texte après le dernier code
+  if (lastIndex < text.length) {
+    const afterText = text.substring(lastIndex);
+    parts.push(`<div class="bubble">${esc(afterText)}</div>`);
+  }
+  
+  // Si pas de code détecté, bubble normale
+  if (parts.length === 0) {
+    parts.push(`<div class="bubble">${esc(text)}</div>`);
+  }
+  
+  div.innerHTML = parts.join('') + `<span class="ts">${nowTime()}</span>`;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
+}
+
+function copyCode(id) {
+  const code = $(id).textContent;
+  navigator.clipboard.writeText(code);
+  event.target.textContent = 'Copié ✓';
+  setTimeout(() => { event.target.textContent = 'Copier'; }, 2000);
 }
 
 function addUserMsg(text, imgSrc){
