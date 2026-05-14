@@ -224,18 +224,13 @@
 
 /* PC : chat 900px centré + code large */
 @media (min-width: 769px) {
-  #messages {
-    max-width: 900px;
+  #messages, header, #input-bar, #limit-wall, #chat-err, #img-preview-wrap {
+    max-width: 720px;
     margin: 0 auto;
+    width: 100%;
   }
-  .msg {
-    max-width: 100%;
-  }
-  .msg.ai .bubble {
-    max-width: 100%;
-  }
-  .code-block { 
-    max-width: 100%;
+  .msg, .msg.ai .bubble, .code-block { 
+    max-width: 100%; 
   }
   .code-content pre { 
     font-size: .9rem; 
