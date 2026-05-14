@@ -75,7 +75,7 @@
     .overlay.show { display: block; }
     #messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
     #messages::-webkit-scrollbar { width: 0; }
-    .msg { display: flex; flex-direction: column; max-width: 80%; gap: 3px; animation: pop .2s ease; }
+    .msg { display: flex; flex-direction: column; max-width: 100%; gap: 3px; animation: pop .2s ease; }
     @keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .msg.user { align-self: flex-end; align-items: flex-end; }
     .msg.ai { 
@@ -222,13 +222,37 @@
   background: transparent!important;
 }
 
-/* Responsive PC - plus large sur grand écran */
-@media (min-width: 1024px) {
- .code-block { 
+/* PC : chat 900px centré + code large */
+@media (min-width: 769px) {
+  #messages {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .msg {
     max-width: 100%;
   }
- .code-content pre { 
-    font-size:.9rem; 
+  .msg.ai .bubble {
+    max-width: 100%;
+  }
+  .code-block { 
+    max-width: 100%;
+  }
+  .code-content pre { 
+    font-size: .9rem; 
+  }
+}
+
+/* Mobile : tout en 100% bord à bord */
+@media (max-width: 768px) {
+  #messages {
+    max-width: 100%;
+    padding: 1rem 0.5rem;
+  }
+  .msg {
+    max-width: 100%;
+  }
+  .msg.ai .bubble {
+    max-width: 100%;
   }
 }
   </style>
