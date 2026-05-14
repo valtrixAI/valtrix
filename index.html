@@ -648,7 +648,6 @@ function addAiMsg(text){
   
   // Détecte les blocs ```lang... ```
   const codeRegex = /```(\w+)?\n([\s\S]*?)```/g;
-  let processedText = esc(text);
   let match;
   let parts = [];
   let lastIndex = 0;
@@ -657,13 +656,13 @@ function addAiMsg(text){
     // Texte avant le code
     if (match.index > lastIndex) {
       const beforeText = text.substring(lastIndex, match.index);
-      parts.push(`<div class="bubble">${esc(beforeText)}</div>`);
+      if(beforeText.trim()) parts.push(`<div class="bubble">${esc(beforeText)}</div>`);
     }
     
     // Bloc de code
-    const lang = match[1] || 'code';
+    const lang = match[1] || 'plaintext';
     const code = match[2];
-    const codeId = 'code-' + Date.now() + Math.random();
+    const codeId = 'code-' + Date.now() + Math.random().toString(36).substr(2, 9);
     parts.push(`
       <div class="code-block">
         <div class="code-header">
@@ -671,7 +670,7 @@ function addAiMsg(text){
           <button class="code-copy" onclick="copyCode('${codeId}')">Copier</button>
         </div>
         <div class="code-content">
-          <pre><code id="${codeId}">${esc(code)}</code></pre>
+          <pre><code class="language-${lang}" id="${codeId}">${esc(code)}</code></pre>
         </div>
       </div>
     `);
@@ -681,7 +680,7 @@ function addAiMsg(text){
   // Texte après le dernier code
   if (lastIndex < text.length) {
     const afterText = text.substring(lastIndex);
-    parts.push(`<div class="bubble">${esc(afterText)}</div>`);
+    if(afterText.trim()) parts.push(`<div class="bubble">${esc(afterText)}</div>`);
   }
   
   // Si pas de code détecté, bubble normale
@@ -692,6 +691,9 @@ function addAiMsg(text){
   div.innerHTML = parts.join('') + `<span class="ts">${nowTime()}</span>`;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
+  
+  // Cette ligne active les couleurs Prism
+  if (window.Prism) Prism.highlightAllUnder(div);
 }
 
 function copyCode(id) {
