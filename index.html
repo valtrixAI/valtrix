@@ -78,48 +78,14 @@
     .msg { display: flex; flex-direction: column; max-width: 100%; gap: 3px; animation: pop .2s ease; }
     @keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .msg.user { align-self: flex-end; align-items: flex-end; }
-    .msg.ai { 
-  align-self: flex-start; 
-  align-items: flex-start;
-  max-width: 100%; 
-}
+    .msg.ai { align-self: flex-start; align-items: flex-start; max-width: 100%; }
     .bubble { padding: 10px 14px; border-radius: 20px; font-size: .875rem; line-height: 1.6; word-break: break-word; white-space: pre-wrap; }
     .msg.user .bubble { background: linear-gradient(135deg, var(--g1), var(--g2)); color: #fff; border-bottom-right-radius: 4px; }
-    .msg.ai .bubble { 
-  background: var(--surface); 
-  color: var(--text); 
-  border-bottom-left-radius: 4px;
-  max-width: 100%;
-}
-    .msg.ai .code-block {
-  max-width: 100%;
-  width: 100%;
-}
-
-.code-content pre {
-  margin: 0;
-  padding: 14px 16px;
-  overflow-x: auto;
-  background: transparent;
-  white-space: pre;
-}
-.code-content code {
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 14px;
-  line-height: 1.6;
-  display: block;
-  width: max-content;
-  min-width: 100%;
-}
-
-@media (max-width: 768px) {
-  .code-content code {
-    font-size: 13px;
-  }
-  .msg.ai .bubble {
-    max-width: 100%;
-  }
-}
+    .msg.ai .bubble { background: var(--surface); color: var(--text); border-bottom-left-radius: 4px; max-width: 100%; }
+    .msg.ai .code-block { max-width: 100%; width: 100%; }
+    .code-content pre { margin: 0; padding: 14px 16px; overflow-x: auto; background: transparent; white-space: pre; }
+    .code-content code { font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 14px; line-height: 1.6; display: block; width: max-content; min-width: 100%; }
+    @media (max-width: 768px) { .code-content code { font-size: 13px; } .msg.ai .bubble { max-width: 100%; } }
     .msg-img { max-width: 200px; border-radius: 14px; margin-bottom: 4px; }
     .ts { font-size: .67rem; color: var(--muted); padding: 0 4px; }
     .typing { display: flex; align-items: center; gap: 5px; padding: 12px 14px; }
@@ -131,7 +97,7 @@
     #limit-wall p { font-size: .83rem; color: #dc2626; font-weight: 600; }
     #limit-wall small { font-size: .75rem; color: var(--muted); display: block; margin-top: 4px; }
     #limit-wall button { margin-top: .7rem; background: linear-gradient(135deg, var(--g1), var(--g2)); color: #fff; border: none; border-radius: 8px; padding: .55rem 1.2rem; font-family: var(--font); font-size: .82rem; font-weight: 600; cursor: pointer; }
-    #input-bar { padding: .6rem .9rem 1.1rem; display: flex; align-items: center; gap: 7px; }
+    #input-bar { padding: .6rem .9rem .4rem; display: flex; align-items: center; gap: 7px; }
     .plus-btn { width: 36px; height: 36px; border: none; background: none; font-size: 1.4rem; color: var(--muted); cursor: pointer; flex-shrink: 0; }
     #img-input { display: none; }
     .input-wrap { flex: 1; background: var(--surface); border: 1.5px solid var(--border); border-radius: 28px; display: flex; align-items: center; padding: 5px 5px 5px 13px; gap: 7px; transition: border-color .2s; }
@@ -146,6 +112,7 @@
     #img-preview { max-height: 75px; border-radius: 10px; border: 2px solid #c084fc; }
     .rm-img { font-size: .73rem; color: #ef4444; cursor: pointer; margin-left: 6px; }
     #chat-err { font-size: .78rem; color: #ef4444; padding: 0 1rem .3rem; display: none; }
+    .disclaimer { text-align: center; font-size: .68rem; color: var(--muted); padding: .3rem 1rem .8rem; }
     #pay-modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: none; align-items: center; justify-content: center; }
     #pay-modal.show { display: flex; }
     .pay-box { background: #fff; border-radius: 20px; padding: 2rem; max-width: 340px; width: 90%; text-align: center; display: flex; flex-direction: column; gap: 1rem; }
@@ -155,103 +122,30 @@
     .pay-features { text-align: left; font-size: .85rem; display: flex; flex-direction: column; gap: .4rem; color: var(--muted); list-style: none; }
     .pay-features li::before { content: '✓ '; color: var(--g1); font-weight: 700; }
     .pay-close { background: none; border: none; font-size: .82rem; color: var(--muted); cursor: pointer; }
-    .chat-item-row { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .chat-info { flex: 1; min-width: 0; cursor: pointer; }
-    .chat-menu-btn { opacity: 0; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 1.2rem; color: var(--muted); }
-    .chat-item:hover .chat-menu-btn { opacity: 1; }
-    .chat-menu-btn:hover { background: var(--border); }
-    .chat-menu { position: absolute; right: 0; top: 2.2rem; background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.15); z-index: 100; min-width: 140px; display: none; }
-    .chat-menu.show { display: block; }
-    .chat-menu button { display: block; width: 100%; text-align: left; padding: .6rem .9rem; border: none; background: none; font-family: var(--font); font-size: .82rem; cursor: pointer; }
-    .chat-menu button:hover { background: var(--surface); }
-    .chat-menu button:first-child { border-radius: 8px 8px 0 0; }
-    .chat-menu button:last-child { border-radius: 0 0 8px 8px; color: #dc2626; } 
-.code-block { 
-  background: #fff; 
-  border: 1px solid #e5e7eb; 
-  border-radius: 10px; 
-  margin:.8rem 0; 
-  overflow: hidden;
-  width: 100%;
-  box-sizing: border-box;
-}
-.code-header { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  background: #f8fafc; 
-  padding:.6rem.9rem; 
-  color: #475569; 
-  font-size:.75rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-.code-lang { 
-  font-weight: 600; 
-  text-transform: uppercase;
-  color: #6366f1;
-}
-.code-copy { 
-  background: #fff; 
-  border: 1px solid #e5e7eb; 
-  color: #64748b; 
-  padding:.3rem.6rem; 
-  border-radius: 6px; 
-  cursor: pointer; 
-  font-size:.7rem;
-  font-family: var(--font);
-}
-.code-copy:hover { 
-  background: #f1f5f9; 
-  border-color: #6366f1;
-  color: #6366f1;
-}
-.code-content { 
-  padding: 1rem; 
-  overflow-x: auto;
-  background: #fff;
-}
-.code-content pre { 
-  margin: 0; 
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace; 
-  font-size:.85rem; 
-  line-height: 1.6;
-  background: transparent!important;
-}
-.code-content code { 
-  font-family: inherit;
-  background: transparent!important;
-}
-
-/* PC : chat 900px centré + code large */
-@media (min-width: 769px) {
-  #messages, header, #input-bar, #limit-wall, #chat-err, #img-preview-wrap {
-    max-width: 720px;
-    margin: 0 auto;
-    width: 100%;
-  }
-  .msg, .msg.ai .bubble, .code-block { 
-    max-width: 100%; 
-  }
-  .code-content pre { 
-    font-size: .9rem; 
-  }
-}
-
-/* Mobile : tout en 100% bord à bord */
-@media (max-width: 768px) {
-  #messages {
-    max-width: 100%;
-    padding: 1rem 0.5rem;
-  }
-  .msg {
-    max-width: 100%;
-  }
-  .msg.ai .bubble {
-    max-width: 100%;
-  }
-}
+    .code-block { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; margin:.8rem 0; overflow: hidden; width: 100%; box-sizing: border-box; }
+    .code-header { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding:.6rem .9rem; color: #475569; font-size:.75rem; border-bottom: 1px solid #e5e7eb; }
+    .code-lang { font-weight: 600; text-transform: uppercase; color: #6366f1; }
+    .code-copy { background: #fff; border: 1px solid #e5e7eb; color: #64748b; padding:.3rem .6rem; border-radius: 6px; cursor: pointer; font-size:.7rem; font-family: var(--font); }
+    .code-copy:hover { background: #f1f5f9; border-color: #6366f1; color: #6366f1; }
+    .code-content { padding: 1rem; overflow-x: auto; background: #fff; }
+    .code-content pre { margin: 0; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size:.85rem; line-height: 1.6; background: transparent!important; }
+    .code-content code { font-family: inherit; background: transparent!important; }
+    @media (min-width: 769px) {
+      #messages, header, #input-bar, #limit-wall, #chat-err, #img-preview-wrap, .disclaimer { max-width: 720px; margin: 0 auto; width: 100%; }
+      .msg, .msg.ai .bubble, .code-block { max-width: 100%; }
+      .code-content pre { font-size: .9rem; }
+    }
+    @media (max-width: 768px) {
+      #messages { max-width: 100%; padding: 1rem 0.5rem; }
+      .msg { max-width: 100%; }
+      .msg.ai .bubble { max-width: 100%; }
+    }
+    /* CGU checkbox */
+    .cgu-wrap { display: none; align-items: flex-start; gap: .6rem; font-size: .78rem; color: var(--muted); padding: .2rem 0; }
+    .cgu-wrap input[type="checkbox"] { margin-top: 2px; accent-color: var(--g1); width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; }
+    .cgu-wrap a { color: var(--g1); font-weight: 600; text-decoration: none; }
+    .cgu-wrap a:hover { text-decoration: underline; }
   </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
@@ -259,15 +153,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
 </head>
 <body>
-  <!-- ADMIN PANEL -->
+
+<!-- ADMIN PANEL -->
 <div id="adminPanel" style="display:none;position:fixed;top:20px;right:20px;z-index:9999;background:#111;padding:18px;border-radius:14px;border:1.5px solid #333;box-shadow:0 0 20px #000;width:240px;">
   <h3 style="margin:0 0 12px 0;font-size:1rem;font-weight:700;color:#0f0;">⚡ Admin Valtrix</h3>
   <button onclick="makeMePremium()" style="width:100%;padding:.7rem;border:none;border-radius:10px;background:#0f0;color:#000;font-weight:700;cursor:pointer;margin-bottom:10px;">Se mettre Premium</button>
-  
-  <input id="userEmail" placeholder="email@user.com" style="width:100%;padding:.6rem;margin-bottom:6px;border:1.5px solid #333;border-radius:8px;background:#000;color:#fff;">
-  <input id="msgCount" type="number" placeholder="Messages à offrir" style="width:100%;padding:.6rem;margin-bottom:6px;border:1.5px solid #333;border-radius:8px;background:#000;color:#fff;">
+  <input id="userEmail" placeholder="email@user.com" style="width:100%;padding:.6rem;margin-bottom:6px;border:1.5px solid #333;border-radius:8px;background:#000;color:#fff;font-family:var(--font);">
+  <input id="msgCount" type="number" placeholder="Messages à offrir" style="width:100%;padding:.6rem;margin-bottom:6px;border:1.5px solid #333;border-radius:8px;background:#000;color:#fff;font-family:var(--font);">
   <button onclick="addCredits()" style="width:100%;padding:.7rem;border:none;border-radius:10px;background:#0066ff;color:#fff;font-weight:600;cursor:pointer;margin-bottom:12px;">Donner des messages</button>
-  
   <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid #333;">
     <span style="font-size:.85rem;font-weight:500;color:#aaa;">Maintenance</span>
     <div style="display:flex;gap:6px;">
@@ -276,8 +169,16 @@
     </div>
   </div>
 </div>
-<div id="maintenanceOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);z-index:9998;align-items:center;justify-content:center"><div style="text-align:center;font-family:'Sora'"><div style="font-size:3rem">🛠️</div><h1 style="font-size:1.5rem;font-weight:700">Maintenance en cours</h1><p id="maintenanceMsg" style="color:#888">Valtrix revient très vite.</p></div></div>
 
+<div id="maintenanceOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);z-index:9998;align-items:center;justify-content:center;">
+  <div style="text-align:center;font-family:'Sora',sans-serif;">
+    <div style="font-size:3rem">🛠️</div>
+    <h1 style="font-size:1.5rem;font-weight:700;margin-top:.5rem">Maintenance en cours</h1>
+    <p style="color:#888;margin-top:.5rem">Valtrix revient très vite.</p>
+  </div>
+</div>
+
+<!-- VÉRIFICATION EMAIL -->
 <div id="verify-screen" class="screen hidden">
   <div class="logo-wrap">
     <svg class="logo-svg" viewBox="0 0 100 100"><defs><linearGradient id="vg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs><polygon points="50,8 15,25 5,80 25,70 50,95 75,70 95,80 85,25" fill="url(#vg1)"/><polygon points="15,25 5,2 32,22" fill="url(#vg1)"/><polygon points="85,25 95,2 68,22" fill="url(#vg1)"/></svg>
@@ -300,6 +201,7 @@
   <p style="font-size:.8rem;color:var(--muted);text-align:center">Pas reçu ? <a onclick="resendCode()" style="color:var(--g1);cursor:pointer;font-weight:600">Renvoyer</a></p>
 </div>
 
+<!-- LOGIN / REGISTER -->
 <div id="auth-screen" class="screen">
   <div class="logo-wrap">
     <svg class="logo-svg" viewBox="0 0 100 100"><defs><linearGradient id="ag1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs><polygon points="50,8 15,25 5,80 25,70 50,95 75,70 95,80 85,25" fill="url(#ag1)"/><polygon points="15,25 5,2 32,22" fill="url(#ag1)"/><polygon points="85,25 95,2 68,22" fill="url(#ag1)"/></svg>
@@ -309,14 +211,28 @@
     <button class="tab on" id="tab-login" onclick="switchTab('login')">Connexion</button>
     <button class="tab" id="tab-register" onclick="switchTab('register')">Créer un compte</button>
   </div>
+
+  <!-- Champs inscription uniquement -->
   <div id="reg-fields" class="hidden">
     <div class="row2">
       <div class="field"><label>Prénom <span style="color:var(--g1)">*</span></label><input type="text" id="reg-fn" placeholder="Jean"/></div>
       <div class="field"><label>Nom <span style="color:var(--muted);font-size:.65rem">(facultatif)</span></label><input type="text" id="reg-ln" placeholder="Dupont"/></div>
     </div>
+    <div class="field" style="margin-top:.7rem">
+      <label>Date de naissance <span style="color:var(--g1)">*</span></label>
+      <input type="date" id="reg-dob"/>
+    </div>
   </div>
+
   <div class="field"><label>Email</label><input type="email" id="auth-email" placeholder="votre@email.com"/></div>
   <div class="field"><label>Mot de passe</label><input type="password" id="auth-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAuth()"/></div>
+
+  <!-- Case CGU (visible seulement à l'inscription) -->
+  <div class="cgu-wrap" id="cgu-wrap">
+    <input type="checkbox" id="cgu-check" onchange="updateAuthBtn()"/>
+    <label for="cgu-check">Je certifie avoir plus de 15 ans et j'accepte les <a href="/cgu" target="_blank">CGU</a> et la <a href="/privacy" target="_blank">Politique de confidentialité</a> de Valtrix AI.</label>
+  </div>
+
   <div class="msg-box msg-err" id="auth-err"></div>
   <div class="msg-box msg-ok" id="auth-ok"></div>
   <button class="btn btn-main" id="auth-btn" onclick="doAuth()">Se connecter →</button>
@@ -333,6 +249,7 @@
   </div>
 </div>
 
+<!-- CHAT -->
 <div id="chat-screen">
   <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
   <div id="sidebar">
@@ -359,7 +276,7 @@
   <div id="limit-wall">
     <p>🔒 Limite atteinte</p>
     <small id="limit-txt"></small>
-    <button onclick="showPayModal()">Passer à Premium — 5€/mois</button>
+    <button onclick="showPayModal()">Passer à Premium — 5 €/mois</button>
   </div>
   <div id="chat-err"></div>
   <div id="img-preview-wrap"><img id="img-preview" src="" alt=""/><span class="rm-img" onclick="removeImage()">✕ Supprimer</span></div>
@@ -371,20 +288,23 @@
       <button id="send-btn" onclick="sendMessage()"><svg viewBox="0 0 24 24"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/></svg></button>
     </div>
   </div>
+  <!-- DISCLAIMER -->
+  <p class="disclaimer">Valtrix peut commettre des erreurs. Veuillez vérifier les réponses.</p>
 </div>
 
+<!-- MODAL PAIEMENT -->
 <div id="pay-modal">
   <div class="pay-box">
     <div style="font-size:2rem">🐺</div>
     <h3 class="grad">Valtrix Premium</h3>
-    <div class="pay-price grad">5€<span>/mois</span></div>
+    <div class="pay-price grad">5 €<span>/mois</span></div>
     <ul class="pay-features">
       <li>Messages illimités</li>
       <li>Analyses d'images illimitées</li>
       <li>Historique complet sauvegardé</li>
       <li>Priorité de réponse</li>
     </ul>
-    <a href="STRIPE_PAYMENT_LINK" target="_blank" class="btn btn-main" style="text-decoration:none;display:block;padding:.82rem;">Payer 5€/mois →</a>
+    <a href="STRIPE_PAYMENT_LINK" target="_blank" class="btn btn-main" style="text-decoration:none;display:block;padding:.82rem;">Payer 5 €/mois →</a>
     <button class="pay-close" onclick="document.getElementById('pay-modal').classList.remove('show')">Annuler</button>
   </div>
 </div>
@@ -410,16 +330,28 @@ function getUsage(){
 }
 function saveUsage(u){ try { localStorage.setItem('vx_usage', JSON.stringify(u)); } catch {} }
 
+// ════ TABS ════
 let currentTab = 'login';
 function switchTab(tab){
   currentTab = tab;
   $('tab-login').classList.toggle('on', tab === 'login');
   $('tab-register').classList.toggle('on', tab === 'register');
   $('reg-fields').classList.toggle('hidden', tab === 'login');
+  $('cgu-wrap').style.display = tab === 'register' ? 'flex' : 'none';
   $('auth-btn').textContent = tab === 'login' ? 'Se connecter →' : 'Créer mon compte →';
+  updateAuthBtn();
   hideMsg('auth-err'); hideMsg('auth-ok');
 }
 
+function updateAuthBtn(){
+  if (currentTab === 'register') {
+    $('auth-btn').disabled = !$('cgu-check').checked;
+  } else {
+    $('auth-btn').disabled = false;
+  }
+}
+
+// ════ CODE VÉRIFICATION ════
 let pendingEmail = '';
 function setupCodeInputs(){
   const inputs = document.querySelectorAll('.ci');
@@ -429,15 +361,12 @@ function setupCodeInputs(){
       inp.value = inp.value.replace(/\D/g, '');
       if (inp.value && i < inputs.length - 1) inputs[i+1].focus();
     };
-    inp.onkeydown = e => {
-      if (e.key === 'Backspace' && !inp.value && i > 0) inputs[i-1].focus();
-    };
+    inp.onkeydown = e => { if (e.key === 'Backspace' && !inp.value && i > 0) inputs[i-1].focus(); };
     inp.onpaste = e => {
       e.preventDefault();
-      const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0, 6);
+      const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
       [...paste].forEach((ch, j) => { if (inputs[j]) inputs[j].value = ch; });
-      const last = Math.min(paste.length, inputs.length - 1);
-      inputs[last].focus();
+      inputs[Math.min(paste.length, inputs.length-1)].focus();
     };
   });
   inputs[0].focus();
@@ -466,13 +395,11 @@ async function resendCode(){
   hideMsg('verify-err');
   try {
     await fetch('/api/auth', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'register', email:pendingEmail, password:'resend', firstname:'resend'})});
-    showErr('verify-err', '✅ Code renvoyé !');
-    $('verify-err').style.background = '#f0fdf4';
-    $('verify-err').style.color = '#16a34a';
-    $('verify-err').style.borderColor = '#bbf7d0';
+    showOk('verify-err', '✅ Code renvoyé !');
   } catch {}
 }
 
+// ════ AUTH ════
 async function doAuth(){
   hideMsg('auth-err'); hideMsg('auth-ok');
   const email = $('auth-email').value.trim().toLowerCase();
@@ -487,8 +414,15 @@ async function doAuth(){
     const fn = $('reg-fn').value.trim();
     if (!fn) { showErr('auth-err', '⚠️ Le prénom est obligatoire.'); btn.disabled = false; btn.textContent = 'Créer mon compte →'; return; }
     const ln = $('reg-ln').value.trim();
+
+    // Vérification date de naissance
+    const dob = $('reg-dob').value;
+    if (!dob) { showErr('auth-err', '⚠️ La date de naissance est obligatoire.'); btn.disabled = false; btn.textContent = 'Créer mon compte →'; return; }
+    const age = Math.floor((Date.now() - new Date(dob)) / (365.25 * 24 * 60 * 60 * 1000));
+    if (age < 15) { showErr('auth-err', '⚠️ Tu dois avoir au moins 15 ans pour créer un compte.'); btn.disabled = false; btn.textContent = 'Créer mon compte →'; return; }
+
     try {
-      const res = await fetch('/api/auth', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'register', email, password:pw, firstname:fn, lastname:ln})});
+      const res = await fetch('/api/auth', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'register', email, password:pw, firstname:fn, lastname:ln, dob, age})});
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       pendingEmail = email;
@@ -512,16 +446,11 @@ async function doAuth(){
 }
 
 function socialLogin(provider){
-  const fakeUser = {
-    id: 'social_' + provider + '_' + Date.now(),
-    email: provider.toLowerCase() + '_' + Date.now() + '@social.valtrix',
-    firstname: provider,
-    lastname: '',
-    premium: false
-  };
+  const fakeUser = { id:'social_'+provider+'_'+Date.now(), email:provider.toLowerCase()+'_'+Date.now()+'@social.valtrix', firstname:provider, lastname:'', premium:false };
   loginSuccess(fakeUser);
 }
 
+// ════ SESSION ════
 let currentUser = null;
 let history = [];
 let currentChatId = null;
@@ -560,6 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch {}
 });
 
+// ════ SIDEBAR ════
 function openSidebar(){ $('sidebar').classList.add('open'); $('overlay').classList.add('show'); }
 function closeSidebar(){ $('sidebar').classList.remove('open'); $('overlay').classList.remove('show'); }
 
@@ -577,10 +507,7 @@ function renderChatList(chats){
   chatsCache = {};
   chats.forEach(c => { chatsCache[c.id] = c; });
   const list = $('chat-list');
-  if (!chats.length) {
-    list.innerHTML = '<div class="no-chats">Aucune conversation</div>';
-    return;
-  }
+  if (!chats.length) { list.innerHTML = '<div class="no-chats">Aucune conversation</div>'; return; }
   list.innerHTML = chats.map(c => `
     <div class="chat-item" style="position:relative">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:.7rem 1rem;cursor:pointer;border-bottom:1px solid var(--surface)" onmouseover="this.querySelector('.chat-btn').style.opacity=1" onmouseout="this.querySelector('.chat-btn').style.opacity=0">
@@ -612,11 +539,7 @@ document.addEventListener('click', (e) => {
 
 async function deleteChatAction(chatId, userId) {
   if (!confirm('Supprimer ce chat ?')) return;
-  await fetch('/api/chats', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'delete', user_id: userId, chat_id: chatId })
-  });
+  await fetch('/api/chats', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'delete', user_id:userId, chat_id:chatId}) });
   if (currentChatId === chatId) startNewChat();
   loadChatHistory();
 }
@@ -624,17 +547,12 @@ async function deleteChatAction(chatId, userId) {
 async function renameChatAction(chatId, userId) {
   const newTitle = prompt('Nouveau nom du chat :');
   if (!newTitle?.trim()) return;
-  await fetch('/api/chats', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'rename', user_id: userId, chat_id: chatId, title: newTitle.trim() })
-  });
+  await fetch('/api/chats', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'rename', user_id:userId, chat_id:chatId, title:newTitle.trim()}) });
   loadChatHistory();
 }
 
 function loadChatById(id){
-  const c = chatsCache[id];
-  if (!c) return;
+  const c = chatsCache[id]; if (!c) return;
   currentChatId = c.id;
   history = Array.isArray(c.messages) ? c.messages : [];
   $('messages').innerHTML = '';
@@ -643,8 +561,7 @@ function loadChatById(id){
       const text = typeof m.content === 'string' ? m.content : (m.content.find(b => b.type === 'text')?.text || '');
       addUserMsg(text, null);
     } else {
-      const text = typeof m.content === 'string' ? m.content : '';
-      addAiMsg(text);
+      addAiMsg(typeof m.content === 'string' ? m.content : '');
     }
   });
   closeSidebar();
@@ -660,7 +577,7 @@ function updatePlanDisplay(){
         <div class="plan-desc">${FREE_MSGS - u.msgs} msg · ${FREE_IMGS - u.imgs} 📷 restants<br>Remise à zéro toutes les 5h</div>
        </div>
        <div class="plan-card" style="margin-top:.5rem">
-        <div class="plan-name">⭐ Premium — 5€/mois</div>
+        <div class="plan-name">⭐ Premium — 5 €/mois</div>
         <div class="plan-desc">Messages et images illimités</div>
         <button class="plan-btn" onclick="showPayModal()">Passer à Premium</button>
        </div>`;
@@ -668,11 +585,7 @@ function updatePlanDisplay(){
 
 function updateLimitBadge(){
   const isPremium = currentUser?.premium;
-  if (isPremium) {
-    $('limit-badge').textContent = '⭐ Premium';
-    $('limit-badge').className = 'limit-badge';
-    return;
-  }
+  if (isPremium) { $('limit-badge').textContent = '⭐ Premium'; $('limit-badge').className = 'limit-badge'; return; }
   const u = getUsage();
   const left = FREE_MSGS - u.msgs;
   const badge = $('limit-badge');
@@ -680,13 +593,11 @@ function updateLimitBadge(){
     badge.textContent = '🔒 Limite'; badge.className = 'limit-badge full';
     const resetAt = new Date(u.ts + RESET_MS);
     $('limit-txt').textContent = `Rechargement à ${resetAt.getHours()}h${String(resetAt.getMinutes()).padStart(2,'0')}`;
-    $('limit-wall').style.display = 'block';
-    $('input-bar').style.display = 'none';
+    $('limit-wall').style.display = 'block'; $('input-bar').style.display = 'none';
   } else {
     badge.textContent = `${left} msg · ${FREE_IMGS - u.imgs} 📷`;
     badge.className = left <= 2 ? 'limit-badge warn' : 'limit-badge';
-    $('limit-wall').style.display = 'none';
-    $('input-bar').style.display = 'flex';
+    $('limit-wall').style.display = 'none'; $('input-bar').style.display = 'flex';
   }
 }
 
@@ -694,62 +605,34 @@ function startNewChat(){
   history = []; currentChatId = Date.now().toString();
   $('messages').innerHTML = '';
   updateLimitBadge();
-  const name = currentUser?.firstname || 'toi';
-addAiMsg(`Bonjour ${name} ! 👋 Je suis Valtrix 🐺 Pose-moi une question !`);
+  addAiMsg(`Bonjour ${currentUser?.firstname || 'toi'} ! 👋 Je suis Valtrix 🐺 Pose-moi une question !`);
 }
 
 function addAiMsg(text){
   const msgs = $('messages');
   const div = document.createElement('div');
   div.className = 'msg ai';
-  
-  // Détecte les blocs ```lang... ```
   const codeRegex = /```(\w+)?\n([\s\S]*?)```/g;
-  let match;
-  let parts = [];
-  let lastIndex = 0;
-  
-  while ((match = codeRegex.exec(text))!== null) {
-    // Texte avant le code
+  let match, parts = [], lastIndex = 0;
+  while ((match = codeRegex.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      const beforeText = text.substring(lastIndex, match.index);
-      if(beforeText.trim()) parts.push(`<div class="bubble">${esc(beforeText)}</div>`);
+      const before = text.substring(lastIndex, match.index);
+      if (before.trim()) parts.push(`<div class="bubble">${esc(before)}</div>`);
     }
-    
-    // Bloc de code
     const lang = match[1] || 'plaintext';
     const code = match[2];
-    const codeId = 'code-' + Date.now() + Math.random().toString(36).substr(2, 9);
-    parts.push(`
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">${esc(lang)}</span>
-          <button class="code-copy" onclick="copyCode('${codeId}')">Copier</button>
-        </div>
-        <div class="code-content">
-          <pre><code class="language-${lang}" id="${codeId}">${esc(code)}</code></pre>
-        </div>
-      </div>
-    `);
+    const codeId = 'code-' + Date.now() + Math.random().toString(36).substr(2,9);
+    parts.push(`<div class="code-block"><div class="code-header"><span class="code-lang">${esc(lang)}</span><button class="code-copy" onclick="copyCode('${codeId}')">Copier</button></div><div class="code-content"><pre><code class="language-${lang}" id="${codeId}">${esc(code)}</code></pre></div></div>`);
     lastIndex = match.index + match[0].length;
   }
-  
-  // Texte après le dernier code
   if (lastIndex < text.length) {
-    const afterText = text.substring(lastIndex);
-    if(afterText.trim()) parts.push(`<div class="bubble">${esc(afterText)}</div>`);
+    const after = text.substring(lastIndex);
+    if (after.trim()) parts.push(`<div class="bubble">${esc(after)}</div>`);
   }
-  
-  // Si pas de code détecté, bubble normale
-  if (parts.length === 0) {
-    parts.push(`<div class="bubble">${esc(text)}</div>`);
-  }
-  
+  if (parts.length === 0) parts.push(`<div class="bubble">${esc(text)}</div>`);
   div.innerHTML = parts.join('') + `<span class="ts">${nowTime()}</span>`;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
-  
-  // Cette ligne active les couleurs Prism
   if (window.Prism) Prism.highlightAllUnder(div);
 }
 
@@ -769,8 +652,7 @@ function addUserMsg(text, imgSrc){
   if (text) inner += `<div class="bubble">${esc(text)}</div>`;
   inner += `<span class="ts">${nowTime()}</span>`;
   div.innerHTML = inner;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
+  msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
 }
 
 function showTyping(){ const msgs=$('messages'); const div=document.createElement('div'); div.className='msg ai'; div.id='typing'; div.innerHTML=`<div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`; msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight; }
@@ -781,29 +663,14 @@ function handleImage(e){
   const file = e.target.files[0]; if (!file) return;
   if (file.size > 5 * 1024 * 1024) { alert('Image trop lourde (max 5 Mo)'); return; }
   const reader = new FileReader();
-  reader.onload = ev => {
-    const r = ev.target.result;
-    pendingB64 = r.split(',')[1];
-    pendingType = file.type;
-    $('img-preview').src = r;
-    $('img-preview-wrap').style.display = 'block';
-  };
+  reader.onload = ev => { const r = ev.target.result; pendingB64 = r.split(',')[1]; pendingType = file.type; $('img-preview').src = r; $('img-preview-wrap').style.display = 'block'; };
   reader.readAsDataURL(file);
 }
-function removeImage(){
-  pendingB64 = null; pendingType = null;
-  $('img-preview-wrap').style.display = 'none';
-  $('img-input').value = '';
-}
+function removeImage(){ pendingB64 = null; pendingType = null; $('img-preview-wrap').style.display = 'none'; $('img-input').value = ''; }
 
 const textarea = $('user-input');
-textarea.addEventListener('input', () => {
-  textarea.style.height = 'auto';
-  textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
-});
-textarea.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-});
+textarea.addEventListener('input', () => { textarea.style.height = 'auto'; textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px'; });
+textarea.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
 
 async function sendMessage(){
   const text = textarea.value.trim();
@@ -814,48 +681,35 @@ async function sendMessage(){
     const u = getUsage();
     if (u.msgs >= FREE_MSGS) { updateLimitBadge(); return; }
     if (pendingB64 && u.imgs >= FREE_IMGS) { alert(`Limite de ${FREE_IMGS} images atteinte !`); return; }
-    u.msgs++;
-    if (pendingB64) u.imgs++;
-    saveUsage(u);
-    updateLimitBadge();
+    u.msgs++; if (pendingB64) u.imgs++;
+    saveUsage(u); updateLimitBadge();
   }
 
   const imgSrc = pendingB64 ? `data:${pendingType};base64,${pendingB64}` : null;
   const userText = text || 'Décris cette image.';
   textarea.value = ''; textarea.style.height = 'auto';
   addUserMsg(userText, imgSrc);
-
   history.push({role:'user', content: userText});
   removeImage();
 
-  $('send-btn').disabled = true;
-  showTyping();
-  $('chat-err').style.display = 'none';
+  $('send-btn').disabled = true; showTyping(); $('chat-err').style.display = 'none';
 
   try {
     const res = await fetch('/api/chat', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        messages: history,
-        userId: currentUser?.id,
-        chat_id: currentChatId
-      })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ messages: history, userId: currentUser?.id, chat_id: currentChatId })
     });
     if (!res.ok) throw new Error(`Erreur serveur ${res.status}`);
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-
-    const reply = data.reply || "Désolé, pas de réponse.";
+    const reply = data.reply || 'Désolé, pas de réponse.';
     history.push({role:'assistant', content: reply});
-    hideTyping();
-    addAiMsg(reply);
+    hideTyping(); addAiMsg(reply);
 
-    const title = history.find(m => m.role === 'user')?.content || 'Chat';
+    const title = (history.find(m => m.role === 'user')?.content || 'Chat').substring(0,40);
     fetch('/api/chats', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action:'save', user_id:currentUser.id, chat_id:currentChatId, title:title.substring(0,40), messages:history})
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'save', user_id:currentUser.id, chat_id:currentChatId, title, messages:history})
     }).then(() => loadChatHistory()).catch(() => {});
 
   } catch(e) {
@@ -864,46 +718,33 @@ async function sendMessage(){
     $('chat-err').style.display = 'block';
   }
 
-  $('send-btn').disabled = false;
-  textarea.focus();
+  $('send-btn').disabled = false; textarea.focus();
 }
 
 function showPayModal(){ $('pay-modal').classList.add('show'); closeSidebar(); }
-// === ADMIN PANEL ===
+
+// ════ ADMIN ════
 const ADMIN_EMAIL = 'charlyvangrim@gmail.com';
 
 function initAdmin() {
-  if (currentUser?.email === ADMIN_EMAIL) {
-    document.getElementById('adminPanel').style.display = 'block';
-  }
+  if (currentUser?.email === ADMIN_EMAIL) $('adminPanel').style.display = 'block';
   checkMaintenance();
 }
 
 async function checkMaintenance() {
   try {
-    const res = await fetch('/api/admin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'getMaintenance', adminEmail: ADMIN_EMAIL })
-    });
+    const res = await fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'getMaintenance', adminEmail: ADMIN_EMAIL}) });
     const data = await res.json();
     const isAdmin = currentUser?.email === ADMIN_EMAIL;
-    const overlay = document.getElementById('maintenanceOverlay');
-    if (overlay) {
-      overlay.style.display = (data.maintenance && !isAdmin) ? 'flex' : 'none';
-    }
+    const overlay = $('maintenanceOverlay');
+    if (overlay) overlay.style.display = (data.maintenance && !isAdmin) ? 'flex' : 'none';
   } catch {}
 }
-
-// Vérifie toutes les 5 secondes
 setInterval(checkMaintenance, 5000);
+
 async function makeMePremium() {
   try {
-    const res = await fetch('/api/admin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'makePremium', adminEmail: currentUser.email })
-    });
+    const res = await fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'makePremium', adminEmail:currentUser.email}) });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
     currentUser.premium = true;
@@ -914,15 +755,11 @@ async function makeMePremium() {
 }
 
 async function addCredits() {
-  const email = document.getElementById('userEmail').value.trim();
-  const n = parseInt(document.getElementById('msgCount').value);
+  const email = $('userEmail').value.trim();
+  const n = parseInt($('msgCount').value);
   if (!email || !n) return alert('Email + nombre requis');
   try {
-    const res = await fetch('/api/admin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'addCredits', email, amount: n, adminEmail: currentUser.email })
-    });
+    const res = await fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'addCredits', email, amount:n, adminEmail:currentUser.email}) });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
     alert('✅ +' + n + ' messages pour ' + email);
@@ -931,16 +768,12 @@ async function addCredits() {
 
 async function setMaintenance(value) {
   try {
-    const res = await fetch('/api/admin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'setMaintenance', value, adminEmail: currentUser.email })
-    });
+    const res = await fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'setMaintenance', value, adminEmail:currentUser.email}) });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
-    document.getElementById('btnMaintOn').style.background = value ? '#00ff00' : '#00aa00';
-    document.getElementById('btnMaintOff').style.background = value ? '#444' : '#00aa00';
-    document.getElementById('maintenanceOverlay').style.display = value ? 'flex' : 'none';
+    $('btnMaintOn').style.background = value ? '#00ff00' : '#00aa00';
+    $('btnMaintOff').style.background = value ? '#444' : '#00aa00';
+    $('maintenanceOverlay').style.display = value ? 'flex' : 'none';
     alert('Maintenance ' + (value ? 'activée ✅' : 'désactivée ✅'));
   } catch(e) { alert('Erreur : ' + e.message); }
 }
@@ -951,14 +784,6 @@ window.addEventListener('load', () => {
   const s = JSON.parse(localStorage.getItem('vx_session') || '{}');
   if (s?.id) { currentUser = s; initAdmin(); }
 });
-// FORCE PANEL POUR DEBUG
-setTimeout(()=>{ 
-  const s = JSON.parse(localStorage.getItem('vx_session')||'{}'); 
-  if(s.email==='charlyvangrim@gmail.com'){
-    document.getElementById('adminPanel').style.display='block';
-    console.log('Panel forcé');
-  }
-}, 1500);
 </script>
 </body>
 </html>
