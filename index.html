@@ -801,7 +801,7 @@ document.getElementById('img-input').addEventListener('change', async (e) => {
       })
     });
     const data = await res.json();
-    alert(data.reply); // pour tester, ça affiche la réponse
+    alert(JSON.stringify(data));
   };
   reader.readAsDataURL(file);
 });
