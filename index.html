@@ -784,6 +784,27 @@ window.addEventListener('load', () => {
   const s = JSON.parse(localStorage.getItem('vx_session') || '{}');
   if (s?.id) { currentUser = s; initAdmin(); }
 });
+document.getElementById('img-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const imageBase64 = reader.result;
+    document.getElementById('img-preview').src = imageBase64;
+    document.getElementById('img-preview-wrap').style.display = 'block';
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        messages: [{role:'user', content:'Décris cette image'}],
+        imageBase64: imageBase64
+      })
+    });
+    const data = await res.json();
+    alert(data.reply); // pour tester, ça affiche la réponse
+  };
+  reader.readAsDataURL(file);
+});
 </script>
 </body>
 </html>
