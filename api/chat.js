@@ -43,17 +43,16 @@ async function askHF(messages) {
   return data[0].generated_text.split('assistant:').pop().trim();
 }
 
-// 2️⃣ KIMI K2.5 (texte + vision)
+// 2️⃣ KIMI K2.6 (texte + vision) - ID CORRECT
 async function askKimi(messages, imageBase64 = null) {
-  const content = [];
   const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || 'Bonjour';
+  const content = [{ type: 'text', text: lastUser }];
 
-  content.push({ type: 'text', text: lastUser });
   if (imageBase64) {
     content.push({ type: 'image_url', image_url: { url: imageBase64 } });
   }
 
-  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/moonshotai/kimi-k2.5-instruct`, {
+  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/moonshotai/kimi-k2.6`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${process.env.CF_TOKEN}`,
@@ -64,6 +63,7 @@ async function askKimi(messages, imageBase64 = null) {
       max_tokens: 800
     })
   });
+
   const data = await r.json();
   if (!data.success) throw new Error(data.errors?.[0]?.message || 'Kimi failed');
   return data.result.response;
@@ -90,28 +90,13 @@ async function askGroqCode(messages) {
       return data.choices[0].message.content;
     });
   } catch {
-    return await askKimi(messages); // fallback Kimi
-  }
-}
-
-// 4️⃣ CLOUDFLARE base
-async function askCloudflare(messages) {
-  try {
-    const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.1-8b-instruct`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${process.env.CF_TOKEN}` },
-      body: JSON.stringify({ messages })
-    });
-    const data = await r.json();
-    if (!data.success) throw new Error();
-    return data.result.response;
-  } catch {
-    return await askKimi(messages); // fallback Kimi
+    return await askKimi(messages);
   }
 }
 
 module.exports = async function handler(req, res) {
   if (req.method!== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
   try {
     const body = typeof req.body === 'string'? JSON.parse(req.body) : req.body;
     const { messages = [], imageBase64, isPremium, userId } = body || {};
@@ -119,7 +104,6 @@ module.exports = async function handler(req, res) {
     const start = Date.now();
 
     if (imageBase64) {
-      // PHOTO → Kimi Vision
       reply = await askKimi(messages, imageBase64);
       provider = 'kimi-vision';
     } else if (isPremium) {
@@ -134,7 +118,6 @@ module.exports = async function handler(req, res) {
       reply = await askGroqCode(messages);
       provider = 'groq-code';
     } else {
-      // BANAL → Kimi direct (plus puissant que Llama 8B)
       reply = await askKimi(messages);
       provider = 'kimi-chat';
     }
