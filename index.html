@@ -697,7 +697,13 @@ async function sendMessage(){
   try {
     const res = await fetch('/api/chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ messages: history, userId: currentUser?.id, chat_id: currentChatId })
+      body: JSON.stringify({ 
+  messages: history, 
+  userId: currentUser?.id, 
+  chat_id: currentChatId,
+  imageBase64: pendingB64,
+  isPremium: currentUser?.premium 
+})
     });
     if (!res.ok) throw new Error(`Erreur serveur ${res.status}`);
     const data = await res.json();
