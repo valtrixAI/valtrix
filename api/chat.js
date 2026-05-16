@@ -5,6 +5,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// Détecte si c'est du code
 const isCode = (msgs) => {
   const last = [...msgs].reverse().find(m => m.role === 'user')?.content || '';
   return /code|bug|debug|javascript|python|html|css|react|api|fonction|script|erreur/i.test(last);
@@ -23,7 +24,7 @@ async function withRetry(fn) {
   }
 }
 
-// 1️⃣ PREMIUM HF
+// 1️⃣ PREMIUM - HuggingFace
 async function askHF(messages) {
   const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || '';
   const r = await fetch("https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3.1-8B-Instruct", {
@@ -43,7 +44,7 @@ async function askHF(messages) {
   return data[0].generated_text.split('assistant:').pop().trim();
 }
 
-// 2️⃣ KIMI K2.6 (texte + vision) - ID CORRECT
+// 2️⃣ KIMI K2.6 - Texte + Vision (CORRIGÉ)
 async function askKimi(messages, imageBase64 = null) {
   const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || 'Bonjour';
   const content = [{ type: 'text', text: lastUser }];
@@ -52,24 +53,33 @@ async function askKimi(messages, imageBase64 = null) {
     content.push({ type: 'image_url', image_url: { url: imageBase64 } });
   }
 
-  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/moonshotai/kimi-k2.6`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.CF_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      messages: [{ role: 'user', content }],
-      max_tokens: 800
-    })
-  });
+  const r = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/moonshotai/kimi-k2.6`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.CF_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content }],
+        max_tokens: 800
+      })
+    }
+  );
 
   const data = await r.json();
-  if (!data.success) throw new Error(data.errors?.[0]?.message || 'Kimi failed');
-  return data.result.response;
+  if (!data.success) {
+    throw new Error(data.errors?.[0]?.message || 'Kimi failed');
+  }
+
+  // Kimi renvoie au format OpenAI
+  return data.result?.response
+      || data.result?.choices?.[0]?.message?.content
+      || 'Désolé, pas de réponse';
 }
 
-// 3️⃣ GROQ code
+// 3️⃣ GROQ - Code uniquement (14 400/jour)
 async function askGroqCode(messages) {
   try {
     return await withRetry(async () => {
@@ -81,32 +91,43 @@ async function askGroqCode(messages) {
         },
         body: JSON.stringify({
           model: 'llama-3.1-70b-versatile',
-          messages: [{ role: 'system', content: 'Tu es Valtrix expert code.' },...messages],
-          temperature: 0.2
+          messages: [
+            { role: 'system', content: 'Tu es Valtrix expert code. Réponds concis et précis.' },
+           ...messages
+          ],
+          temperature: 0.2,
+          max_tokens: 1000
         })
       });
       if (r.status === 429) throw { status: 429 };
       const data = await r.json();
       return data.choices[0].message.content;
     });
-  } catch {
+  } catch (e) {
+    // Fallback sur Kimi si Groq plante
     return await askKimi(messages);
   }
 }
 
+// HANDLER PRINCIPAL
 module.exports = async function handler(req, res) {
-  if (req.method!== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method!== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
   try {
     const body = typeof req.body === 'string'? JSON.parse(req.body) : req.body;
     const { messages = [], imageBase64, isPremium, userId } = body || {};
+
     let reply, provider;
     const start = Date.now();
 
     if (imageBase64) {
+      // PHOTO → Kimi Vision
       reply = await askKimi(messages, imageBase64);
       provider = 'kimi-vision';
     } else if (isPremium) {
+      // PREMIUM → HF puis Kimi
       try {
         reply = await withRetry(() => askHF(messages));
         provider = 'hf-premium';
@@ -115,13 +136,16 @@ module.exports = async function handler(req, res) {
         provider = 'kimi-premium';
       }
     } else if (isCode(messages)) {
+      // CODE → Groq puis Kimi
       reply = await askGroqCode(messages);
       provider = 'groq-code';
     } else {
+      // NORMAL → Kimi
       reply = await askKimi(messages);
       provider = 'kimi-chat';
     }
 
+    // Log Supabase (non bloquant)
     try {
       await supabase.from('chat_logs').insert({
         user_id: userId || 'anon',
@@ -132,9 +156,12 @@ module.exports = async function handler(req, res) {
         is_premium:!!isPremium,
         has_image:!!imageBase64
       });
-    } catch {}
+    } catch (logErr) {
+      console.error('Log error:', logErr);
+    }
 
     res.status(200).json({ reply, provider });
+
   } catch (e) {
     console.error('Chat error:', e);
     res.status(500).json({ error: e.message || 'Erreur serveur' });
