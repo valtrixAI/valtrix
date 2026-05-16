@@ -7,11 +7,11 @@ const supabase = createClient(
 
 // Détecte si c'est du code
 const isCode = (msgs) => {
-  const lastUser = [...msgs].reverse().find(m => m.role === 'user')?.content || '';
-  return /code|bug|debug|javascript|python|html|css|react|api|fonction|script/i.test(lastUser);
+  const last = [...msgs].reverse().find(m => m.role === 'user')?.content || '';
+  return /code|bug|debug|javascript|python|html|css|react|api|fonction|script|erreur/i.test(last);
 };
 
-// Retry si rate limit
+// Retry 3x
 async function withRetry(fn) {
   for (let i = 0; i < 3; i++) {
     try { return await fn(); }
@@ -25,9 +25,8 @@ async function withRetry(fn) {
   }
 }
 
-// 1. Hugging Face (premium)
+// 1️⃣ PREMIUM : HuggingFace
 async function askHF(messages) {
-  if (!process.env.HF_TOKEN) throw new Error('HF_TOKEN manquant');
   const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || '';
   const r = await fetch("https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3.1-8B-Instruct", {
     method: 'POST',
@@ -36,74 +35,102 @@ async function askHF(messages) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      inputs: `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\nTu es Valtrix, assistant francophone premium.<|eot_id|><|start_header_id|>user<|end_header_id|>\n${lastUser}<|eot_id|><|start_header_id|>assistant<|end_header_id|>`,
-      parameters: { max_new_tokens: 500, temperature: 0.7 }
+      inputs: `system: Tu es Valtrix, assistant premium francophone.\nuser: ${lastUser}\nassistant:`,
+      parameters: { max_new_tokens: 600, temperature: 0.7 }
     })
   });
   if (r.status === 429) throw { status: 429 };
   const data = await r.json();
   if (data.error) throw new Error(data.error);
-  return data[0].generated_text.split('<|start_header_id|>assistant<|end_header_id|>').pop().trim();
+  return data[0].generated_text.split('assistant:').pop().trim();
 }
 
-// 2. Groq pour le code
+// 2️⃣ CODE : Groq → fallback Cloudflare
 async function askGroqCode(messages) {
-  const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  try {
+    return await withRetry(async () => {
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-70b-versatile',
+          messages: [{ role: 'system', content: 'Tu es Valtrix, expert code. Réponds en français, clair et direct.' },...messages],
+          temperature: 0.2,
+          max_tokens: 800
+        })
+      });
+      if (r.status === 429) throw { status: 429 };
+      const data = await r.json();
+      return data.choices[0].message.content;
+    });
+  } catch {
+    // Fallback Cloudflare si Groq saturé
+    return await askCloudflareBase(messages, 'Tu es Valtrix expert code.');
+  }
+}
+
+// 3️⃣ CHAT NORMAL : Cloudflare → fallback Groq
+async function askCloudflare(messages) {
+  try {
+    return await askCloudflareBase(messages, 'Tu es Valtrix, assistant utile et sympa.');
+  } catch {
+    // Fallback Groq si Cloudflare saturé
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}` },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [{ role: 'system', content: 'Tu es Valtrix.' },...messages],
+        temperature: 0.7
+      })
+    });
+    const data = await r.json();
+    return data.choices[0].message.content;
+  }
+}
+
+async function askCloudflareBase(messages, systemPrompt) {
+  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.1-8b-instruct`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+      'Authorization': `Bearer ${process.env.CF_TOKEN}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'llama-3.1-70b-versatile',
-      messages: [{ role: 'system', content: 'Tu es Valtrix, expert code. Réponds en français.' },...messages],
-      temperature: 0.3
-    })
-  });
-  if (r.status === 429) throw { status: 429 };
-  const data = await r.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.choices[0].message.content;
-}
-
-// 3. Cloudflare (chat normal)
-async function askCloudflare(messages) {
-  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.1-8b-instruct`, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${process.env.CF_TOKEN}` },
-    body: JSON.stringify({
-      messages: [{ role: 'system', content: 'Tu es Valtrix, assistant francophone utile.' },...messages]
+      messages: [{ role: 'system', content: systemPrompt },...messages]
     })
   });
   const data = await r.json();
-  if (!data.success) throw new Error(data.errors?.[0]?.message || 'Cloudflare error');
+  if (!data.success) throw new Error('cf-fail');
   return data.result.response;
 }
 
-// 4. Gemini pour les images (CORRIGÉ)
-async function askGemini(messages, imageBase64) {
-  const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || 'Décris cette image';
-
-  // ✅ Nettoie le base64
+// 4️⃣ VISION : Cloudflare Llava (photos)
+async function askVision(messages, imageBase64) {
+  const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || 'Décris cette image précisément';
   const cleanBase64 = imageBase64.includes(',')? imageBase64.split(',')[1] : imageBase64;
 
-  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY manquante');
-
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/llava-hf/llava-1.5-7b-hf`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Authorization': `Bearer ${process.env.CF_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify({
-      contents: [{ parts: [
-        { text: lastUser },
-        { inline_data: { mime_type: "image/jpeg", data: cleanBase64 } }
-      ]}]
+      image: cleanBase64,
+      prompt: lastUser,
+      max_tokens: 512
     })
   });
   const data = await r.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.candidates[0].content.parts[0].text;
+  if (!data.success) throw new Error(data.errors?.[0]?.message || 'Vision failed');
+  return data.result.description;
 }
 
+// HANDLER PRINCIPAL
 module.exports = async function handler(req, res) {
   if (req.method!== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -111,55 +138,46 @@ module.exports = async function handler(req, res) {
     const body = typeof req.body === 'string'? JSON.parse(req.body) : req.body;
     const { messages = [], imageBase64, isPremium, userId } = body || {};
     let reply, provider;
-    const startTime = Date.now();
+    const start = Date.now();
 
-    // Règle 1: Image = Gemini
+    // ROUTING INTELLIGENT
     if (imageBase64) {
-      reply = await askGemini(messages, imageBase64);
-      provider = 'gemini-vision';
-    }
-    // Règle 2: Premium
-    else if (isPremium) {
+      // PHOTO → Vision Cloudflare
+      reply = await askVision(messages, imageBase64);
+      provider = 'vision-cloudflare';
+    } else if (isPremium) {
+      // PREMIUM → HF → fallback intelligent
       try {
         reply = await withRetry(() => askHF(messages));
         provider = 'hf-premium';
       } catch {
-        if (isCode(messages)) {
-          reply = await withRetry(() => askGroqCode(messages));
-          provider = 'groq-fallback';
-        } else {
-          reply = await askCloudflare(messages);
-          provider = 'cloudflare-fallback';
-        }
+        reply = isCode(messages)
+         ? await askGroqCode(messages)
+          : await askCloudflare(messages);
+        provider = isCode(messages)? 'groq-fallback-premium' : 'cf-fallback-premium';
       }
-    }
-    // Règle 3: Code
-    else if (isCode(messages)) {
-      reply = await withRetry(() => askGroqCode(messages));
+    } else if (isCode(messages)) {
+      // CODE → Groq → fallback Cloudflare
+      reply = await askGroqCode(messages);
       provider = 'groq-code';
-    }
-    // Règle 4: Chat normal
-    else {
+    } else {
+      // BANAL → Cloudflare → fallback Groq
       reply = await askCloudflare(messages);
       provider = 'cloudflare-chat';
     }
 
-    // Log dans Supabase (sans crasher)
+    // Log Supabase
     try {
-      const responseTime = Date.now() - startTime;
-      const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')?.content || '';
       await supabase.from('chat_logs').insert({
-        user_id: userId || 'anonymous',
-        message: lastUserMsg,
-        reply: reply,
-        provider: provider,
-        response_time_ms: responseTime,
-        is_premium: isPremium || false,
+        user_id: userId || 'anon',
+        message: [...messages].reverse().find(m => m.role === 'user')?.content || '',
+        reply,
+        provider,
+        response_time_ms: Date.now() - start,
+        is_premium:!!isPremium,
         has_image:!!imageBase64
       });
-    } catch (logErr) {
-      console.log('Log skip:', logErr.message);
-    }
+    } catch {}
 
     res.status(200).json({ reply, provider });
 
