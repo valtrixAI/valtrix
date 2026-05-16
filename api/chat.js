@@ -43,7 +43,33 @@ async function askHF(messages) {
   return data[0].generated_text.split('assistant:').pop().trim();
 }
 
-// 2️⃣ CODE Groq → fallback CF
+// 2️⃣ KIMI K2.5 (texte + vision)
+async function askKimi(messages, imageBase64 = null) {
+  const content = [];
+  const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || 'Bonjour';
+
+  content.push({ type: 'text', text: lastUser });
+  if (imageBase64) {
+    content.push({ type: 'image_url', image_url: { url: imageBase64 } });
+  }
+
+  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/moonshotai/kimi-k2.5-instruct`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.CF_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      messages: [{ role: 'user', content }],
+      max_tokens: 800
+    })
+  });
+  const data = await r.json();
+  if (!data.success) throw new Error(data.errors?.[0]?.message || 'Kimi failed');
+  return data.result.response;
+}
+
+// 3️⃣ GROQ code
 async function askGroqCode(messages) {
   try {
     return await withRetry(async () => {
@@ -64,67 +90,24 @@ async function askGroqCode(messages) {
       return data.choices[0].message.content;
     });
   } catch {
-    return await askCloudflareBase(messages, 'Tu es Valtrix expert code.');
+    return await askKimi(messages); // fallback Kimi
   }
 }
 
-// 3️⃣ CHAT CF → fallback Groq
+// 4️⃣ CLOUDFLARE base
 async function askCloudflare(messages) {
   try {
-    return await askCloudflareBase(messages, 'Tu es Valtrix assistant utile.');
-  } catch {
-    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.1-8b-instruct`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}` },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: [{ role: 'system', content: 'Tu es Valtrix.' },...messages]
-      })
+      headers: { 'Authorization': `Bearer ${process.env.CF_TOKEN}` },
+      body: JSON.stringify({ messages })
     });
     const data = await r.json();
-    return data.choices[0].message.content;
+    if (!data.success) throw new Error();
+    return data.result.response;
+  } catch {
+    return await askKimi(messages); // fallback Kimi
   }
-}
-
-async function askCloudflareBase(messages, systemPrompt) {
-  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.1-8b-instruct`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.CF_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      messages: [{ role: 'system', content: systemPrompt },...messages]
-    })
-  });
-  const data = await r.json();
-  if (!data.success) throw new Error('cf-fail');
-  return data.result.response;
-}
-
-// 4️⃣ VISION Llama 3.2 (CORRIGÉ)
-async function askVision(messages, imageBase64) {
-  const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || 'Décris cette image précisément';
-  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.2-11b-vision-instruct`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.CF_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'text', text: lastUser },
-          { type: 'image_url', image_url: { url: imageBase64 } }
-        ]
-      }],
-      max_tokens: 512
-    })
-  });
-  const data = await r.json();
-  if (!data.success) throw new Error(data.errors?.[0]?.message || 'Vision failed');
-  return data.result.response;
 }
 
 module.exports = async function handler(req, res) {
@@ -136,22 +119,24 @@ module.exports = async function handler(req, res) {
     const start = Date.now();
 
     if (imageBase64) {
-      reply = await askVision(messages, imageBase64);
-      provider = 'vision-llama32';
+      // PHOTO → Kimi Vision
+      reply = await askKimi(messages, imageBase64);
+      provider = 'kimi-vision';
     } else if (isPremium) {
       try {
         reply = await withRetry(() => askHF(messages));
         provider = 'hf-premium';
       } catch {
-        reply = isCode(messages)? await askGroqCode(messages) : await askCloudflare(messages);
-        provider = 'fallback-premium';
+        reply = await askKimi(messages);
+        provider = 'kimi-premium';
       }
     } else if (isCode(messages)) {
       reply = await askGroqCode(messages);
       provider = 'groq-code';
     } else {
-      reply = await askCloudflare(messages);
-      provider = 'cloudflare-chat';
+      // BANAL → Kimi direct (plus puissant que Llama 8B)
+      reply = await askKimi(messages);
+      provider = 'kimi-chat';
     }
 
     try {
