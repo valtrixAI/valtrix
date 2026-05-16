@@ -282,7 +282,7 @@
   <div id="img-preview-wrap"><img id="img-preview" src="" alt=""/><span class="rm-img" onclick="removeImage()">✕ Supprimer</span></div>
   <div id="input-bar">
     <button class="plus-btn" title="Ajouter une image" onclick="document.getElementById('img-input').click()">+</button>
-    <input type="file" id="img-input" accept="image/*" onchange="handleImage(event)"/>
+    <input type="file" id="img-input" accept="image/*" />
     <div class="input-wrap">
       <textarea id="user-input" rows="1" placeholder="Posez une question..."></textarea>
       <button id="send-btn" onclick="sendMessage()"><svg viewBox="0 0 24 24"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/></svg></button>
@@ -299,8 +299,8 @@
     <h3 class="grad">Valtrix Premium</h3>
     <div class="pay-price grad">5 €<span>/mois</span></div>
     <ul class="pay-features">
-      <li>Messages illimités</li>
-      <li>Analyses d'images illimitées</li>
+      <li>Limite de Messages augementé</li>
+      <li>Limite d'Analyses d'images augementé</li>
       <li>Historique complet sauvegardé</li>
       <li>Priorité de réponse</li>
     </ul>
