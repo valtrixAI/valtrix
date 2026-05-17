@@ -1,0 +1,14 @@
+<button onclick="send()">Envoyer test</button>
+<script>
+async function send(){
+  const res = await fetch('https://www.aivaltrix.com/api/broadcast', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      subject: 'Test',
+      html: '<p>Salut depuis Valtrix</p>'
+    })
+  });
+  alert(await res.text());
+}
+</script>
