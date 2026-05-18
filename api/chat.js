@@ -29,10 +29,7 @@ async function askHF(messages) {
   const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || '';
   const r = await fetch("https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3.1-8B-Instruct", {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.HF_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Authorization': `Bearer ${process.env.HF_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       inputs: `system: Tu es Valtrix premium.\nuser: ${lastUser}\nassistant:`,
       parameters: { max_new_tokens: 600, temperature: 0.7 }
@@ -44,88 +41,104 @@ async function askHF(messages) {
   return data[0].generated_text.split('assistant:').pop().trim();
 }
 
-// 2️⃣ KIMI K2.6 - Texte + Vision (CORRIGÉ)
-async function askKimi(messages, imageBase64 = null) {
-  const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || 'Bonjour';
-  const content = [{ type: 'text', text: lastUser }];
-
-  if (imageBase64) {
-    content.push({ type: 'image_url', image_url: { url: imageBase64 } });
-  }
-
+// 2️⃣ KIMI K2 - Chat texte uniquement (PAS de vision)
+async function askKimi(messages) {
   const r = await fetch(
     `https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/moonshotai/kimi-k2.6`,
     {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.CF_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Authorization': `Bearer ${process.env.CF_TOKEN}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        messages: [{ role: 'user', content }],
+        messages: [
+          { role: 'system', content: 'Tu es Valtrix, un assistant IA sympa et francophone 🐺. Réponds toujours en français, de façon claire et décontractée.' },
+          ...messages
+        ],
         max_tokens: 800
       })
     }
   );
-
   const data = await r.json();
-  if (!data.success) {
-    throw new Error(data.errors?.[0]?.message || 'Kimi failed');
-  }
-
-  // Kimi renvoie au format OpenAI
-  return data.result?.response
-      || data.result?.choices?.[0]?.message?.content
-      || 'Désolé, pas de réponse';
+  if (!data.success) throw new Error(data.errors?.[0]?.message || 'Kimi failed');
+  return data.result?.response || data.result?.choices?.[0]?.message?.content || 'Désolé, pas de réponse';
 }
 
-// 3️⃣ GROQ - Code uniquement (14 400/jour)
+// 3️⃣ VISION - LLaMA 3.2 Vision (Cloudflare) — ✅ CORRIGÉ
+async function askVision(messages, imageBase64) {
+  const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || 'Décris cette image en détail';
+
+  // ✅ Nettoie le base64 : enlève le préfixe "data:image/...;base64,"
+  const cleanBase64 = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
+
+  const r = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.2-11b-vision-instruct`,
+    {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${process.env.CF_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: 'Tu es Valtrix, assistant IA. Analyse les images et réponds en français de façon détaillée.' },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: lastUser },
+              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${cleanBase64}` } }
+            ]
+          }
+        ],
+        max_tokens: 800
+      })
+    }
+  );
+  const data = await r.json();
+  if (!data.success) throw new Error(data.errors?.[0]?.message || 'Vision model failed');
+  return data.result?.response || data.result?.choices?.[0]?.message?.content || "Je n'arrive pas à analyser cette image.";
+}
+
+// 4️⃣ GROQ - Code uniquement — ✅ MODÈLE MIS À JOUR
 async function askGroqCode(messages) {
   try {
     return await withRetry(async () => {
       const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'llama-3.1-70b-versatile',
+          model: 'llama-3.3-70b-versatile', // ✅ 3.1-70b déprécié → remplacé par 3.3-70b
           messages: [
-            { role: 'system', content: 'Tu es Valtrix expert code. Réponds concis et précis.' },
-           ...messages
+            { role: 'system', content: 'Tu es Valtrix, expert en code. Réponds en français avec du code commenté et clair.' },
+            ...messages
           ],
           temperature: 0.2,
-          max_tokens: 1000
+          max_tokens: 1500
         })
       });
       if (r.status === 429) throw { status: 429 };
       const data = await r.json();
+      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
       return data.choices[0].message.content;
     });
   } catch (e) {
     // Fallback sur Kimi si Groq plante
+    console.log('Groq fallback to Kimi:', e.message);
     return await askKimi(messages);
   }
 }
 
 // HANDLER PRINCIPAL
 module.exports = async function handler(req, res) {
-  if (req.method!== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const body = typeof req.body === 'string'? JSON.parse(req.body) : req.body;
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const { messages = [], imageBase64, isPremium, userId } = body || {};
 
     let reply, provider;
     const start = Date.now();
 
     if (imageBase64) {
-      // PHOTO → Kimi Vision
-      reply = await askKimi(messages, imageBase64);
-      provider = 'kimi-vision';
+      // PHOTO → LLaMA 3.2 Vision ✅
+      reply = await askVision(messages, imageBase64);
+      provider = 'llama-vision';
+
     } else if (isPremium) {
       // PREMIUM → HF puis Kimi
       try {
@@ -135,10 +148,12 @@ module.exports = async function handler(req, res) {
         reply = await askKimi(messages);
         provider = 'kimi-premium';
       }
+
     } else if (isCode(messages)) {
-      // CODE → Groq puis Kimi
+      // CODE → Groq 3.3-70B ✅
       reply = await askGroqCode(messages);
       provider = 'groq-code';
+
     } else {
       // NORMAL → Kimi
       reply = await askKimi(messages);
@@ -153,11 +168,11 @@ module.exports = async function handler(req, res) {
         reply,
         provider,
         response_time_ms: Date.now() - start,
-        is_premium:!!isPremium,
-        has_image:!!imageBase64
+        is_premium: !!isPremium,
+        has_image: !!imageBase64
       });
     } catch (logErr) {
-      console.error('Log error:', logErr);
+      console.error('Log error:', logErr.message);
     }
 
     res.status(200).json({ reply, provider });
