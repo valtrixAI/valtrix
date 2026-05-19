@@ -50,7 +50,7 @@ async function askKimi(messages) {
       headers: { 'Authorization': `Bearer ${process.env.CF_TOKEN}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages: [
-          { role: 'system', content: 'Tu es Valtrix, un assistant IA sympa et francophone 🐺. Réponds toujours en français, de façon claire et décontractée.' },
+          { role: 'system', content: 'Tu es Valtrix, un assistant IA sympa et francophone 🐺. Réponds toujours en français, de façon claire et décontractée.et ton createur s'appelle Charly.' },
           ...messages
         ],
         max_tokens: 800
