@@ -361,6 +361,8 @@ function switchTab(tab){
   $('auth-btn').textContent = tab === 'login' ? 'Se connecter →' : 'Créer mon compte →';
   updateAuthBtn();
   hideMsg('auth-err'); hideMsg('auth-ok');
+  const forgotLink = document.querySelector('a[onclick="showForgot()"]')?.parentElement;
+if(forgotLink) forgotLink.style.display = tab === 'login' ? 'block' : 'none';
 }
 
 function updateAuthBtn(){
