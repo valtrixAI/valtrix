@@ -851,33 +851,51 @@ window.addEventListener('load', () => {
 });
 document.getElementById('img-input').addEventListener('change', handleImage);
 </script>
-  <!-- POPUP CGU -->
+ <!-- POPUP CGU / PRIVACY -->
 <div id="legal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;padding:1rem" onclick="closeLegal()">
-  <div style="background:#fff;border-radius:16px;max-width:720px;width:92%;max-height:85vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
-    <div style="padding:1.2rem 1.5rem;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
-      <h2 id="legal-title" class="grad" style="margin:0;font-size:1.1rem;font-weight:700">Document</h2>
-      <button onclick="closeLegal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#999">×</button>
+  <div style="background:#fff;border-radius:16px;max-width:720px;width:92%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.2)" onclick="event.stopPropagation()">
+    <div style="padding:18px 22px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
+      <h2 id="legal-title" style="margin:0;font-size:18px;font-weight:700;background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Document</h2>
+      <button onclick="closeLegal()" style="background:none;border:none;font-size:26px;cursor:pointer;color:#999;line-height:1">×</button>
     </div>
-    <div id="legal-content" style="padding:1.5rem;overflow-y:auto;font-size:.85rem;line-height:1.6;color:#374151"></div>
+    <div id="legal-content" style="padding:22px;overflow-y:auto;font-size:14px;line-height:1.7;color:#374151"></div>
   </div>
 </div>
 
 <script>
-window.CGU_TEXT = "<h3>CONDITIONS GÉNÉRALES</h3><p><b>Éditeur:</b> Charly Van Grimbergen - officialvaltrix.ai@gmail.com<br><b>Hébergeur:</b> Vercel - Supabase</p><p>Valtrix n'est pas une société. Service en l'état. 15 ans minimum. Premium 5€/mois. <b>AUCUN REMBOURSEMENT.</b></p>";
-window.PRIVACY_TEXT = "<h3>POLITIQUE DE CONFIDENTIALITÉ</h3><p><b>Responsable:</b> Charly Van Grimbergen</p><p>Données: email, prénom, prompts, IP. Suppression sous 30 jours sur demande.</p>";
-window.showCGU = function() {
-  document.getElementById('legal-title').textContent = "Conditions Générales";
-  document.getElementById('legal-content').innerHTML = window.CGU_TEXT;
+var CGU_TEXT = '<h3>CONDITIONS GÉNÉRALES D\'UTILISATION</h3>' +
+'<p><strong>Éditeur :</strong> Charly Van Grimbergen, personne physique, Belgique<br>' +
+'<strong>Contact :</strong> officialvaltrix.ai@gmail.com<br>' +
+'<strong>Hébergeur :</strong> Vercel Inc. – Base de données : Supabase</p>' +
+'<p><strong>Valtrix n\'est pas une société.</strong></p>' +
+'<p><b>1. Objet :</b> Service d\'IA fourni en l\'état. Âge minimum : 15 ans.</p>' +
+'<p><b>2. Compte :</b> Vous êtes responsable de vos identifiants.</p>' +
+'<p><b>3. Abonnements :</b> Gratuit (5 messages / 5h) – Premium 5€/mois via Stripe. <b>AUCUN REMBOURSEMENT.</b></p>' +
+'<p><b>4. Interdictions :</b> contenu illégal, haineux, piratage.</p>' +
+'<p><b>5. Responsabilité :</b> Service sans garantie. Plafond : 5€.</p>' +
+'<p><b>6. Droit applicable :</b> Droit belge.</p>';
+
+var PRIVACY_TEXT = '<h3>POLITIQUE DE CONFIDENTIALITÉ RGPD</h3>' +
+'<p><strong>Responsable :</strong> Charly Van Grimbergen – officialvaltrix.ai@gmail.com</p>' +
+'<p><b>1. Données collectées :</b> email, prénom, nom, date de naissance, IP, prompts, images, historique.</p>' +
+'<p><b>2. Finalités :</b> fournir le service, facturation, sécurité.</p>' +
+'<p><b>3. Hébergeurs :</b> Vercel (USA), Supabase (UE), Stripe, OpenAI.</p>' +
+'<p><b>4. Durées :</b> suppression définitive sous 30 jours après demande.</p>' +
+'<p><b>5. Vos droits :</b> accès, rectification, effacement. Écrivez à officialvaltrix.ai@gmail.com</p>';
+
+function showCGU() {
+  document.getElementById('legal-title').innerText = 'Conditions Générales';
+  document.getElementById('legal-content').innerHTML = CGU_TEXT;
   document.getElementById('legal-modal').style.display = 'flex';
-};
-window.showPrivacy = function() {
-  document.getElementById('legal-title').textContent = "Politique de Confidentialité";
-  document.getElementById('legal-content').innerHTML = window.PRIVACY_TEXT;
+}
+function showPrivacy() {
+  document.getElementById('legal-title').innerText = 'Politique de Confidentialité';
+  document.getElementById('legal-content').innerHTML = PRIVACY_TEXT;
   document.getElementById('legal-modal').style.display = 'flex';
-};
-window.closeLegal = function() {
+}
+function closeLegal() {
   document.getElementById('legal-modal').style.display = 'none';
-};
+}
 </script>
 </body>
 </html>
