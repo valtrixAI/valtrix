@@ -234,38 +234,6 @@
   <label for="cgu-check">Je certifie avoir plus de 15 ans et j'accepte les <a onclick="event.stopPropagation(); showCGU()" style="color:var(--g1);font-weight:600;cursor:pointer">CGU</a> et la <a onclick="event.stopPropagation(); showPrivacy()" style="color:var(--g1);font-weight:600;cursor:pointer">Politique de confidentialité</a> de Valtrix AI.</label>
 </div>
 
-<script>
-const CGU_TEXT = `<h3>CONDITIONS GÉNÉRALES D'UTILISATION</h3>
-<p><strong>Éditeur :</strong> Charly Van Grimbergen, personne physique, Belgique<br>
-<strong>Contact :</strong> officialvaltrix.ai@gmail.com<br>
-<strong>Hébergeur :</strong> Vercel Inc. – Base : Supabase</p>
-<p><strong>Valtrix n'est pas une société.</strong></p>
-<p><b>1. Objet :</b> Service IA fourni en l'état. Âge minimum 15 ans.</p>
-<p><b>2. Compte :</b> Vous êtes responsable de vos identifiants. Suspension possible sans préavis en cas d'abus.</p>
-<p><b>3. Abonnements :</b> Gratuit (5 msg/5h) – Premium 5€/mois via Stripe. <b>AUCUN REMBOURSEMENT.</b></p>
-<p><b>4. Interdictions :</b> contenu illégal, haineux, pédopornographique, piratage, spam, utilisation pour conseil médical/juridique.</p>
-<p><b>5. Propriété :</b> Vous gardez vos prompts. Les réponses IA ne sont pas garanties originales.</p>
-<p><b>6. Responsabilité :</b> Service sans garantie. Charly Van Grimbergen ne peut être tenu responsable des erreurs de l'IA. Plafond d'indemnisation : 5€ ou sommes payées sur 3 mois.</p>
-<p><b>7. Données :</b> Voir Politique de Confidentialité. Hébergement Vercel/Supabase.</p>
-<p><b>8. Droit applicable :</b> Droit belge, tribunal de Nivelles.</p>`;
-
-const PRIVACY_TEXT = `<h3>POLITIQUE DE CONFIDENTIALITÉ RGPD</h3>
-<p><strong>Responsable :</strong> Charly Van Grimbergen – officialvaltrix.ai@gmail.com</p>
-<p><b>1. Données collectées :</b> email, prénom, nom, date naissance, IP, prompts, images, historique, logs.</p>
-<p><b>2. Finalités :</b> fournir le service, facturation, sécurité, support.</p>
-<p><b>3. Base légale :</b> exécution du contrat, intérêt légitime, obligation légale.</p>
-<p><b>4. Hébergeurs :</b> Vercel (USA), Supabase (UE/US), Stripe (paiement), Resend (emails), OpenAI (IA). Transferts encadrés par CCT.</p>
-<p><b>5. Durées :</b> compte actif + 3 ans max. Suppression définitive sous 30j après demande. Logs 12 mois. Factures 10 ans.</p>
-<p><b>6. Partage :</b> aucune vente. Uniquement sous-traitants techniques.</p>
-<p><b>7. Vos droits RGPD :</b> accès, rectification, effacement, portabilité. Écrivez à officialvaltrix.ai@gmail.com</p>
-<p><b>8. Sécurité :</b> HTTPS, mots de passe hashés. Aucun système infaillible.</p>
-<p><b>9. Mineurs :</b> interdit -15 ans.</p>
-<p><b>10. Cookies :</b> uniquement techniques essentiels.</p>`;
-
-function showCGU(){ document.getElementById('legal-title').textContent='Conditions Générales d\'Utilisation'; document.getElementById('legal-content').innerHTML=CGU_TEXT; document.getElementById('legal-modal').style.display='flex'; }
-function showPrivacy(){ document.getElementById('legal-title').textContent='Politique de Confidentialité'; document.getElementById('legal-content').innerHTML=PRIVACY_TEXT; document.getElementById('legal-modal').style.display='flex'; }
-function closeLegal(){ document.getElementById('legal-modal').style.display='none'; }
-</script>
 
   <div class="msg-box msg-err" id="auth-err"></div>
   <div class="msg-box msg-ok" id="auth-ok"></div>
