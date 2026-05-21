@@ -231,7 +231,7 @@
   <!-- Case CGU (visible seulement à l'inscription) -->
   <div class="cgu-wrap" id="cgu-wrap">
   <input type="checkbox" id="cgu-check" onchange="updateAuthBtn()"/>
-  <label for="cgu-check">Je certifie avoir plus de 15 ans et j'accepte les <a onclick="showCGU()" style="color:var(--g1);font-weight:600;cursor:pointer">CGU</a> et la <a onclick="showPrivacy()" style="color:var(--g1);font-weight:600;cursor:pointer">Politique de confidentialité</a> de Valtrix AI.</label>
+  <label for="cgu-check">Je certifie avoir plus de 15 ans et j'accepte les <a onclick="event.stopPropagation(); showCGU()" style="color:var(--g1);font-weight:600;cursor:pointer">CGU</a> et la <a onclick="event.stopPropagation(); showPrivacy()" style="color:var(--g1);font-weight:600;cursor:pointer">Politique de confidentialité</a> de Valtrix AI.</label>
 </div>
 
 <script>
