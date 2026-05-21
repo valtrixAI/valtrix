@@ -230,16 +230,8 @@
 
   <!-- Case CGU (visible seulement à l'inscription) -->
   <div class="cgu-wrap" id="cgu-wrap">
-    <input type="checkbox" id="cgu-check" onchange="updateAuthBtn()"/>
-    <!-- LEGAL MODAL -->
-<div id="legal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;align-items:center;justify-content:center;padding:1rem">
-  <div style="background:#fff;border-radius:16px;max-width:720px;width:100%;max-height:85vh;display:flex;flex-direction:column">
-    <div style="padding:1.2rem 1.5rem;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
-      <h2 id="legal-title" style="margin:0;font-size:1.1rem;font-weight:700" class="grad">Document</h2>
-      <button onclick="closeLegal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#999">×</button>
-    </div>
-    <div id="legal-content" style="padding:1.5rem;overflow-y:auto;font-size:.85rem;line-height:1.6;color:#374151"></div>
-  </div>
+  <input type="checkbox" id="cgu-check" onchange="updateAuthBtn()"/>
+  <label for="cgu-check">Je certifie avoir plus de 15 ans et j'accepte les <a onclick="showCGU()" style="color:var(--g1);font-weight:600;cursor:pointer">CGU</a> et la <a onclick="showPrivacy()" style="color:var(--g1);font-weight:600;cursor:pointer">Politique de confidentialité</a> de Valtrix AI.</label>
 </div>
 
 <script>
