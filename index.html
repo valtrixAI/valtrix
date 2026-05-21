@@ -663,7 +663,7 @@ function handleImage(e){
   const file = e.target.files[0]; if (!file) return;
   if (file.size > 5 * 1024 * 1024) { alert('Image trop lourde (max 5 Mo)'); return; }
   const reader = new FileReader();
-  reader.onload = ev => { const r = ev.target.result; pendingB64 = r; pendingType = file.type; $('img-preview').src = r; $('img-preview-wrap').style.display = 'block'; };
+ reader.onload = ev => { const r = ev.target.result; pendingB64 = r.split(',')[1]; pendingType = file.type; $('img-preview').src = r; $('img-preview-wrap').style.display = 'block'; };
   reader.readAsDataURL(file);
 }
 function removeImage(){ pendingB64 = null; pendingType = null; $('img-preview-wrap').style.display = 'none'; $('img-input').value = ''; }
