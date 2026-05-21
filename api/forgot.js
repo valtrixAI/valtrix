@@ -26,14 +26,7 @@ async function sendReset(email, firstname, code) {
       from: 'Valtrix <hello@aivaltrix.com>',
       to: email,
       subject: 'Réinitialiser ton mot de passe',
-      html: `
-        <div style="font-family:system-ui;padding:30px;max-width:480px;margin:auto">
-          <h1 style="color:#a855f7;margin:0">Valtrix</h1>
-          <p>Salut ${firstname},</p>
-          <p>Code pour réinitialiser ton mot de passe :</p>
-          <div style="font-size:36px;font-weight:800;letter-spacing:10px;text-align:center;background:#fee2e2;padding:20px;border-radius:12px;margin:20px 0;color:#dc2626">${code}</div>
-          <p style="color:#6b7280;font-size:14px">Valide 10 minutes. Si ce n'est pas toi, ignore cet email.</p>
-        </div>`
+      html: `<div style="font-family:system-ui;padding:30px;max-width:480px;margin:auto"><h1 style="color:#a855f7;margin:0">Valtrix</h1><p>Salut ${firstname},</p><p>Code pour réinitialiser :</p><div style="font-size:36px;font-weight:800;letter-spacing:10px;text-align:center;background:#fee2e2;padding:20px;border-radius:12px;margin:20px 0;color:#dc2626">${code}</div><p style="color:#6b7280;font-size:14px">Valide 10 minutes.</p></div>`
     })
   });
 }
@@ -51,7 +44,6 @@ module.exports = async (req, res) => {
     const { action, email, code, newPassword } = body;
     const mail = email?.toLowerCase().trim();
 
-    // ÉTAPE 1 : demander le code
     if (action === 'request') {
       const { data: user } = await supabase.from('users').select('firstname').eq('email', mail).maybeSingle();
       if (!user) throw new Error('Email introuvable');
@@ -59,23 +51,27 @@ module.exports = async (req, res) => {
       const resetCode = code6();
       const exp = Date.now() + 600000;
 
-      await supabase.from('verifications').upsert({
+      // SUPPRIME l'ancien code (inscription ou autre)
+      await supabase.from('verifications').delete().eq('email', mail);
+      
+      // CRÉE le nouveau
+      await supabase.from('verifications').insert({
         email: mail,
         code: resetCode,
         exp,
-        password: 'reset' // marqueur
+        password: 'reset',
+        firstname: user.firstname
       });
 
       await sendReset(mail, user.firstname, resetCode);
       return res.json({ success: true });
     }
 
-    // ÉTAPE 2 : vérifier code + changer mdp
     if (action === 'reset') {
       if (!newPassword || newPassword.length < 6) throw new Error('6 caractères min');
       
       const { data: v } = await supabase.from('verifications').select('*').eq('email', mail).maybeSingle();
-      if (!v || v.password !== 'reset') throw new Error('Demande invalide');
+      if (!v) throw new Error('Aucune demande');
       if (Date.now() > v.exp) throw new Error('Code expiré');
       if (v.code !== code) throw new Error('Code incorrect');
 
