@@ -293,7 +293,26 @@
   <p class="disclaimer">Valtrix peut commettre des erreurs. Veuillez vérifier les réponses.</p>
 </div>
 
-<!-- MODAL PAIEMENT -->
+<!-- FORGOT PASSWORD -->
+<div id="forgot-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:1.8rem;max-width:360px;width:90%;font-family:'Sora',sans-serif">
+    <h3 style="margin:0 0 .5rem;font-size:1.2rem" class="grad">Mot de passe oublié</h3>
+    <div id="forgot-step1">
+      <p style="font-size:.85rem;color:#666;margin-bottom:1rem">Entre ton email, on t'envoie un code.</p>
+      <input id="forgot-email" type="email" placeholder="email@exemple.com" style="width:100%;padding:.75rem;border:1.5px solid #e5e7eb;border-radius:10px;margin-bottom:.8rem;font-family:inherit"/>
+      <button onclick="forgotRequest()" class="btn btn-main">Envoyer le code</button>
+    </div>
+    <div id="forgot-step2" style="display:none">
+      <p style="font-size:.85rem;color:#666;margin-bottom:.6rem">Code reçu :</p>
+      <input id="forgot-code" placeholder="123456" maxlength="6" style="width:100%;padding:.75rem;text-align:center;letter-spacing:8px;font-size:1.3rem;font-weight:700;border:1.5px solid #e5e7eb;border-radius:10px;margin-bottom:.8rem"/>
+      <input id="forgot-newpw" type="password" placeholder="Nouveau mot de passe" style="width:100%;padding:.75rem;border:1.5px solid #e5e7eb;border-radius:10px;margin-bottom:.8rem"/>
+      <button onclick="forgotReset()" class="btn btn-main">Réinitialiser</button>
+    </div>
+    <p id="forgot-msg" style="font-size:.8rem;text-align:center;margin-top:.7rem;display:none"></p>
+    <button onclick="closeForgot()" style="margin-top:.6rem;background:none;border:none;color:#888;font-size:.8rem;cursor:pointer;width:100%">Fermer</button>
+  </div>
+</div>
+  <!-- MODAL PAIEMENT -->
 <div id="pay-modal">
   <div class="pay-box">
     <div style="font-size:2rem">🐺</div>
