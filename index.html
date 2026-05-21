@@ -685,14 +685,14 @@ async function sendMessage(){
     saveUsage(u); updateLimitBadge();
   }
 
- const imageBase64 = pendingB64;  // ✅ sauvegarde AVANT removeImage()
-  const imgSrc = pendingB64 ? `data:${pendingType};base64,${pendingB64}` : null;
-  const userText = text || 'Décris cette image.';
-  textarea.value = ''; textarea.style.height = 'auto';
-  addUserMsg(userText, imgSrc);
-  history.push({role:'user', content: userText});
-  removeImage();
-
+ // APRÈS (corrigé)
+const imageBase64 = pendingB64; // ✅ sauvegarde AVANT removeImage()
+const imgSrc = pendingB64 ? `data:${pendingType};base64,${pendingB64}` : null;
+const userText = text || 'Décris cette image.';
+textarea.value = ''; textarea.style.height = 'auto';
+addUserMsg(userText, imgSrc);
+history.push({role:'user', content: userText});
+removeImage();
   $('send-btn').disabled = true; showTyping(); $('chat-err').style.display = 'none';
 
   try {
