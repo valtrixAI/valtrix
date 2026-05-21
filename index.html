@@ -750,7 +750,42 @@ removeImage();
 
 function showPayModal(){ $('pay-modal').classList.add('show'); closeSidebar(); }
 
-// ════ ADMIN ════
+// FORGOT PASSWORD
+let forgotEmail = '';
+function showForgot(){ document.getElementById('forgot-modal').style.display='flex'; document.getElementById('forgot-step1').style.display='block'; document.getElementById('forgot-step2').style.display='none'; document.getElementById('forgot-msg').style.display='none'; }
+function closeForgot(){ document.getElementById('forgot-modal').style.display='none'; }
+
+async function forgotRequest(){
+  const email = document.getElementById('forgot-email').value.trim().toLowerCase();
+  if(!email) return;
+  const msg = document.getElementById('forgot-msg');
+  msg.style.display='block'; msg.textContent='Envoi...'; msg.style.color='#666';
+  try{
+    const res = await fetch('/api/forgot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'request',email})});
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error);
+    forgotEmail = email;
+    document.getElementById('forgot-step1').style.display='none';
+    document.getElementById('forgot-step2').style.display='block';
+    msg.textContent='✅ Code envoyé !'; msg.style.color='#16a34a';
+  }catch(e){ msg.textContent='⚠ '+e.message; msg.style.color='#dc2626'; }
+}
+
+async function forgotReset(){
+  const code = document.getElementById('forgot-code').value.trim();
+  const newPassword = document.getElementById('forgot-newpw').value;
+  const msg = document.getElementById('forgot-msg');
+  if(code.length!==6 || newPassword.length<6){ msg.style.display='block'; msg.textContent='⚠ Code 6 chiffres + mdp 6+ caractères'; msg.style.color='#dc2626'; return; }
+  msg.style.display='block'; msg.textContent='Vérification...'; msg.style.color='#666';
+  try{
+    const res = await fetch('/api/forgot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset',email:forgotEmail,code,newPassword})});
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error);
+    msg.textContent='✅ Mot de passe changé !'; msg.style.color='#16a34a';
+    setTimeout(()=>{closeForgot();switchTab('login');document.getElementById('auth-email').value=forgotEmail;},1500);
+  }catch(e){ msg.textContent='⚠ '+e.message; msg.style.color='#dc2626'; }
+}
+  // ════ ADMIN ════
 const ADMIN_EMAIL = 'charlyvangrim@gmail.com';
 
 function initAdmin() {
