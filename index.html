@@ -851,5 +851,23 @@ window.addEventListener('load', () => {
 });
 document.getElementById('img-input').addEventListener('change', handleImage);
 </script>
+  <!-- POPUP CGU -->
+<div id="legal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center" onclick="closeLegal()">
+  <div style="background:#fff;border-radius:16px;max-width:700px;width:90%;max-height:80vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
+    <div style="padding:16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between">
+      <h2 id="legal-title" class="grad" style="margin:0;font-size:18px">CGU</h2>
+      <button onclick="closeLegal()" style="border:none;background:none;font-size:24px;cursor:pointer">×</button>
+    </div>
+    <div id="legal-content" style="padding:20px;overflow:auto;font-size:14px"></div>
+  </div>
+</div>
+
+<script>
+const CGU_TEXT=`<h3>CONDITIONS GÉNÉRALES</h3><p>Éditeur: Charly Van Grimbergen - officialvaltrix.ai@gmail.com</p><p>Valtrix n'est pas une société. Service en l'état. 15 ans min. Premium 5€/mois sans remboursement.</p>`;
+const PRIVACY_TEXT=`<h3>CONFIDENTIALITÉ</h3><p>Responsable: Charly Van Grimbergen. Données: email, prompts, IP. Suppression sous 30j.</p>`;
+function showCGU(){legal-title.textContent='CGU';legal-content.innerHTML=CGU_TEXT;legal-modal.style.display='flex'}
+function showPrivacy(){legal-title.textContent='Confidentialité';legal-content.innerHTML=PRIVACY_TEXT;legal-modal.style.display='flex'}
+function closeLegal(){legal-modal.style.display='none'}
+</script>
 </body>
 </html>
