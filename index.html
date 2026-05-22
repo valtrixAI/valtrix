@@ -863,25 +863,46 @@ document.getElementById('img-input').addEventListener('change', handleImage);
 </div>
 
 <script>
-var CGU_TEXT = '<h3>CONDITIONS GÉNÉRALES D\'UTILISATION</h3>' +
-'<p><strong>Éditeur :</strong> Charly Van Grimbergen, personne physique, Belgique<br>' +
+<script>
+var CGU_TEXT = 
+'<h3>CONDITIONS GÉNÉRALES D\'UTILISATION - VALTRIX AI</h3>' +
+'<p><strong>Dernière mise à jour : 21 mai 2026</strong></p>' +
+'<p><strong>Éditeur :</strong> Charly Van Grimbergen, personne physique, domicilié en Belgique (Braine-le-Château)<br>' +
 '<strong>Contact :</strong> officialvaltrix.ai@gmail.com<br>' +
-'<strong>Hébergeur :</strong> Vercel Inc. – Base de données : Supabase</p>' +
-'<p><strong>Valtrix n\'est pas une société.</strong></p>' +
-'<p><b>1. Objet :</b> Service d\'IA fourni en l\'état. Âge minimum : 15 ans.</p>' +
-'<p><b>2. Compte :</b> Vous êtes responsable de vos identifiants.</p>' +
-'<p><b>3. Abonnements :</b> Gratuit (5 messages / 5h) – Premium 5€/mois via Stripe. <b>AUCUN REMBOURSEMENT.</b></p>' +
-'<p><b>4. Interdictions :</b> contenu illégal, haineux, piratage.</p>' +
-'<p><b>5. Responsabilité :</b> Service sans garantie. Plafond : 5€.</p>' +
-'<p><b>6. Droit applicable :</b> Droit belge.</p>';
+'<strong>Hébergeur :</strong> Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, USA<br>' +
+'<strong>Base de données :</strong> Supabase Inc., infrastructure hébergée (UE/US)</p>' +
+'<p style="color:#dc2626;font-weight:700">IMPORTANT : Valtrix n\'est pas une société. Il s\'agit d\'un projet personnel développé par Charly Van Grimbergen.</p>' +
+'<p><b>1. OBJET</b><br>Valtrix est un service en ligne d\'intelligence artificielle conversationnelle accessible via valtrix.ai. En créant un compte, vous acceptez sans réserve les présentes CGU. Âge minimum : 15 ans.</p>' +
+'<p><b>2. COMPTE</b><br>Vous fournissez un email valide, prénom, date de naissance. Vous êtes responsable de la sécurité de votre mot de passe. Un compte = une personne. Toute fausse déclaration entraîne suppression immédiate. Valtrix peut suspendre votre compte sans préavis en cas de violation, inactivité >12 mois, ou comportement abusif.</p>' +
+'<p><b>3. ABONNEMENTS</b><br><strong>Gratuit :</strong> 5 messages et 3 images toutes les 5h. Service fourni sans garantie.<br><strong>Premium :</strong> 5€ TTC/mois via Stripe. Reconduction automatique. Résiliable à tout moment.<br><span style="color:#dc2626;font-weight:700">AUCUN REMBOURSEMENT même partiel, pour quelque raison que ce soit (article essentiel).</span> En cas de résiliation, l\'accès reste actif jusqu\'à la fin de la période payée.</p>' +
+'<p><b>4. UTILISATION INTERDITE</b><br>Vous vous interdisez de : générer du contenu illégal, haineux, pédopornographique, terroriste, diffamatoire ; tenter de pirater, contourner les limites, extraire les modèles ; utiliser les sorties pour entraîner une IA concurrente ; uploader des données personnelles de tiers sans consentement ; utiliser Valtrix pour du conseil médical, juridique ou financier personnalisé ; faire du spam ou scraping massif.<br>Sanction : bannissement immédiat, sans remboursement.</p>' +
+'<p><b>5. PROPRIÉTÉ INTELLECTUELLE</b><br>Valtrix, son code, son design appartiennent à Charly Van Grimbergen. Vos prompts : vous gardez vos droits. Les réponses de l\'IA : Valtrix ne revendique aucun droit, mais l\'IA peut générer des contenus similaires pour d\'autres.</p>' +
+'<p><b>6. RESPONSABILITÉ - CLAUSE CAPITALE</b><br>Valtrix est fourni "EN L\'ÉTAT", SANS AUCUNE GARANTIE. L\'IA peut se tromper, inventer des faits ("halluciner"). Dans la limite maximale autorisée par la loi belge, Charly Van Grimbergen ne pourra être tenu responsable d\'aucun dommage direct ou indirect. <strong>Plafond d\'indemnisation : montant total payé sur les 3 derniers mois, ou 5€ maximum si compte gratuit.</strong> Vous utilisez Valtrix à vos risques et périls.</p>' +
+'<p><b>7. DONNÉES PERSONNELLES (RGPD)</b><br>Responsable : Charly Van Grimbergen – officialvaltrix.ai@gmail.com. Données : email, prénom, nom, date naissance, IP, logs, prompts, images, historique. Hébergement : Supabase (serveurs UE principalement). Durée : suppression + 3 ans max. Logs : 1 an. Vos droits : accès, rectification, effacement, portabilité. Écrivez à officialvaltrix.ai@gmail.com.</p>' +
+'<p><b>8. CONFIDENTIALITÉ</b><br>Vos conversations sont privées mais stockées chiffrées. Elles peuvent être consultées uniquement pour support technique ou sur réquisition judiciaire.</p>' +
+'<p><b>9. DISPONIBILITÉ</b><br>Hébergé chez Vercel. Objectif 99% mais non garanti.</p>' +
+'<p><b>10. RÉSILIATION</b><br>Suppression possible à tout moment. Données effacées sous 30 jours.</p>' +
+'<p><b>11. MODIFICATIONS</b><br>CGU modifiables avec préavis de 15 jours par email.</p>' +
+'<p><b>12. DROIT APPLICABLE</b><br>Droit belge. Tribunal compétent : Tribunal de l\'entreprise du Brabant wallon (Nivelles).</p>';
 
-var PRIVACY_TEXT = '<h3>POLITIQUE DE CONFIDENTIALITÉ RGPD</h3>' +
-'<p><strong>Responsable :</strong> Charly Van Grimbergen – officialvaltrix.ai@gmail.com</p>' +
-'<p><b>1. Données collectées :</b> email, prénom, nom, date de naissance, IP, prompts, images, historique.</p>' +
-'<p><b>2. Finalités :</b> fournir le service, facturation, sécurité.</p>' +
-'<p><b>3. Hébergeurs :</b> Vercel (USA), Supabase (UE), Stripe, OpenAI.</p>' +
-'<p><b>4. Durées :</b> suppression définitive sous 30 jours après demande.</p>' +
-'<p><b>5. Vos droits :</b> accès, rectification, effacement. Écrivez à officialvaltrix.ai@gmail.com</p>';
+var PRIVACY_TEXT = 
+'<h3>POLITIQUE DE CONFIDENTIALITÉ – VALTRIX AI</h3>' +
+'<p><strong>Responsable :</strong> Charly Van Grimbergen, personne physique – officialvaltrix.ai@gmail.com</p>' +
+'<p><b>1. Données collectées</b><br>' +
+'• <strong>Identité :</strong> prénom, nom (facultatif), email, date de naissance<br>' +
+'• <strong>Compte :</strong> mot de passe hashé, date création<br>' +
+'• <strong>Utilisation :</strong> prompts, images uploadées, historique conversations, IP, user-agent, logs techniques<br>' +
+'• <strong>Paiement :</strong> géré par Stripe (nous ne stockons pas ta carte)</p>' +
+'<p><b>2. Pourquoi ?</b><br>Fournir le service IA • Créer et gérer ton compte • Facturer l\'abonnement Premium • Sécuriser la plateforme • Support client • Amélioration (données anonymisées) • Obligations légales</p>' +
+'<p><b>3. Bases légales (RGPD art.6)</b><br>Contrat (art.6.1.b) • Intérêt légitime (sécurité) • Obligation légale (comptabilité) • Consentement (cookies)</p>' +
+'<p><b>4. Hébergement</b><br>Site : Vercel Inc. (USA) • Base : Supabase (AWS UE/US) • Emails : Resend • IA : OpenAI • Paiement : Stripe<br>Transferts hors UE encadrés par Clauses Contractuelles Types.</p>' +
+'<p><b>5. Durées</b><br>Compte actif : conservation • Après suppression : 30 jours puis effacement définitif • Logs sécurité : 12 mois • Factures : 10 ans (loi belge)</p>' +
+'<p><b>6. Partage</b><br>Aucune vente de données. Partage uniquement avec sous-traitants techniques listés ci-dessus, ou sur réquisition judiciaire.</p>' +
+'<p><b>7. Tes droits</b><br>Accès, rectification, effacement, limitation, portabilité, opposition. Exercice : envoie un email à officialvaltrix.ai@gmail.com avec ton email de compte. Réponse sous 30 jours.</p>' +
+'<p><b>8. Sécurité</b><br>Chiffrement HTTPS, mots de passe hashés, accès base limité. Aucun système n\'est infaillible.</p>' +
+'<p><b>9. Mineurs</b><br>Service interdit aux moins de 15 ans. Si on découvre un compte <15 ans, suppression immédiate.</p>' +
+'<p><b>10. Cookies</b><br>Uniquement cookies techniques essentiels (session). Pas de tracking publicitaire.</p>' +
+'<p><b>11. Contact DPO</b><br>Charly Van Grimbergen – officialvaltrix.ai@gmail.com<br>Réclamation : Autorité de protection des données (Belgique) – https://www.autoriteprotectiondonnees.be</p>';
 
 function showCGU() {
   document.getElementById('legal-title').innerText = 'Conditions Générales';
