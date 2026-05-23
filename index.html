@@ -853,25 +853,61 @@ document.getElementById('img-input').addEventListener('change', handleImage);
 </script>
  <!-- POPUP CGU / PRIVACY -->
 <div id="legal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;padding:1rem" onclick="closeLegal()">
-  <div style="background:#fff;border-radius:16px;max-width:720px;width:92%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.2)" onclick="event.stopPropagation()">
+  <div style="background:#fff;border-radius:16px;max-width:780px;width:94%;max-height:88vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
     <div style="padding:18px 22px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
       <h2 id="legal-title" style="margin:0;font-size:18px;font-weight:700;background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Document</h2>
-      <button onclick="closeLegal()" style="background:none;border:none;font-size:26px;cursor:pointer;color:#999;line-height:1">×</button>
+      <button onclick="closeLegal()" style="background:none;border:none;font-size:26px;cursor:pointer;color:#999">×</button>
     </div>
     <div id="legal-content" style="padding:22px;overflow-y:auto;font-size:14px;line-height:1.7;color:#374151"></div>
   </div>
 </div>
 
 <script>
-<div id="legal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center" onclick="this.style.display='none'">
-  <div style="background:#fff;border-radius:16px;max-width:750px;width:92%;max-height:85vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
-    <div style="padding:18px 22px;border-bottom:1px solid #eee;display:flex;justify-content:space-between">
-      <h2 id="legal-title" style="margin:0;font-size:18px;background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">CGU</h2>
-      <button onclick="document.getElementById('legal-modal').style.display='none'" style="border:none;background:none;font-size:24px;cursor:pointer">×</button>
-    </div>
-    <div id="legal-content" style="padding:22px;overflow:auto;font-size:14px;line-height:1.6"></div>
-  </div>
-</div>
+window.CGU_TEXT = `<h3>CONDITIONS GÉNÉRALES D'UTILISATION - VALTRIX AI</h3>
+<p><strong>Dernière mise à jour : 21 mai 2026</strong></p>
+<p><strong>Éditeur :</strong> Charly Van Grimbergen, personne physique, domicilié en Belgique (Braine-le-Château)<br>
+<strong>Contact :</strong> officialvaltrix.ai@gmail.com<br>
+<strong>Hébergeur :</strong> Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, USA<br>
+<strong>Base de données :</strong> Supabase Inc., infrastructure hébergée (UE/US)</p>
+<p style="font-weight:700;color:#dc2626">IMPORTANT : Valtrix n'est pas une société. Il s'agit d'un projet personnel développé par Charly Van Grimbergen.</p>
+<p><b>1. OBJET</b><br>Valtrix est un service en ligne d'intelligence artificielle conversationnelle accessible via valtrix.ai (et sous-domaines Vercel). En créant un compte, vous acceptez sans réserve les présentes CGU. Âge minimum : 15 ans.</p>
+<p><b>2. COMPTE</b><br>Vous fournissez un email valide, prénom, date de naissance. Vous êtes responsable de la sécurité de votre mot de passe. Un compte = une personne. Toute fausse déclaration entraîne suppression immédiate. Valtrix peut suspendre votre compte sans préavis en cas de violation, inactivité >12 mois, ou comportement abusif.</p>
+<p><b>3. ABONNEMENTS</b><br>Gratuit : 5 messages et 3 images toutes les 5h. Service fourni sans garantie.<br>Premium : 5€ TTC/mois via Stripe. Reconduction automatique. Résiliable à tout moment depuis votre compte.<br><b style="color:#dc2626">AUCUN REMBOURSEMENT même partiel, pour quelque raison que ce soit (article essentiel).</b> En cas de résiliation, l'accès reste actif jusqu'à la fin de la période payée.<br>Les prix peuvent évoluer avec préavis de 30 jours par email.</p>
+<p><b>4. UTILISATION INTERDITE</b><br>Vous vous interdisez de :<br>• Générer du contenu illégal, haineux, pédopornographique, terroriste, diffamatoire, harcèlement<br>• Tenter de pirater, contourner les limites, extraire les modèles, reverse-engineer<br>• Utiliser les sorties pour entraîner une IA concurrente<br>• Uploader des données personnelles de tiers sans consentement, ou du contenu protégé sans droit<br>• Utiliser Valtrix pour du conseil médical, juridique ou financier personnalisé<br>• Faire du spam, du scraping massif<br>Sanction : bannissement immédiat, suppression des données, signalement aux autorités, sans remboursement.</p>
+<p><b>5. PROPRIÉTÉ INTELLECTUELLE</b><br>Valtrix, son code, son design appartiennent à Charly Van Grimbergen.<br>Vos prompts : vous gardez vos droits. Vous accordez à Valtrix une licence pour les traiter.<br>Les réponses de l'IA : Valtrix ne revendique aucun droit. Cependant, l'IA peut générer des contenus similaires pour d'autres. Vous êtes seul responsable de vérifier l'absence de violation de droits tiers avant toute utilisation commerciale.</p>
+<p><b>6. RESPONSABILITÉ - CLAUSE CAPITALE</b><br>Valtrix est fourni "EN L'ÉTAT", SANS AUCUNE GARANTIE. L'IA peut se tromper, inventer des faits ("halluciner"), être biaisée ou offensante.<br>Dans la limite maximale autorisée par la loi belge, Charly Van Grimbergen ne pourra être tenu responsable d'aucun dommage direct ou indirect (perte de données, perte de chiffre d'affaires, préjudice d'image, décision erronée prise sur base d'une réponse).<br><b>Plafond d'indemnisation : montant total payé par vous sur les 3 derniers mois, ou 5€ maximum si compte gratuit.</b><br>Vous utilisez Valtrix à vos risques et périls. Vérifiez toujours les informations critiques.</p>
+<p><b>7. DONNÉES PERSONNELLES (RGPD)</b><br>Responsable de traitement : Charly Van Grimbergen – officialvaltrix.ai@gmail.com<br>Données collectées : email, prénom, nom, date de naissance, adresse IP, logs, prompts, images, historique, données de paiement (traitées par Stripe, non stockées chez nous).<br>Hébergement : Données stockées chez Supabase (serveurs UE principalement, avec possibles transferts US encadrés par les Clauses Contractuelles Types).<br>Finalités : fournir le service, sécurité, facturation, support, amélioration du service.<br>Durée : suppression du compte + 3 ans maximum. Logs : 1 an.<br>Vos droits RGPD : accès, rectification, effacement, portabilité, opposition. Écrivez à officialvaltrix.ai@gmail.com. Réponse sous 30 jours.<br>Valtrix ne vend jamais vos données.</p>
+<p><b>8. CONFIDENTIALITÉ</b><br>Vos conversations sont privées mais stockées chiffrées chez Supabase. Elles peuvent être consultées uniquement pour support technique ou sur réquisition judiciaire. Ne partagez jamais de mots de passe, secrets d'affaires ou données de santé.</p>
+<p><b>9. DISPONIBILITÉ</b><br>Hébergé chez Vercel. Objectif 99% de disponibilité mais non garanti. Maintenance possible sans préavis.</p>
+<p><b>10. RÉSILIATION</b><br>Suppression du compte possible à tout moment. Données effacées sous 30 jours (sauf obligations légales).</p>
+<p><b>11. MODIFICATIONS</b><br>CGU modifiables à tout moment. Notification par email 15 jours avant. Utilisation après modification = acceptation.</p>
+<p><b>12. DROIT APPLICABLE</b><br>Droit belge. Tribunal compétent : Tribunal de l'entreprise du Brabant wallon (Nivelles). Langue : français. Tentative de résolution amiable préalable obligatoire par email.<br><br>En créant un compte, vous reconnaissez être majeur de 15 ans, avoir lu et accepté ces CGU, et comprendre que Valtrix est un projet personnel sans garantie.<br><br>Contact : officialvaltrix.ai@gmail.com</p>`;
+
+window.PRIVACY_TEXT = `<h3>POLITIQUE DE CONFIDENTIALITÉ – VALTRIX AI</h3>
+<p><strong>Responsable :</strong> Charly Van Grimbergen, personne physique – officialvaltrix.ai@gmail.com</p>
+<p><b>1. Données collectées</b><br>
+<strong>Identité :</strong> prénom, nom (facultatif), email, date de naissance<br>
+<strong>Compte :</strong> mot de passe hashé, date création<br>
+<strong>Utilisation :</strong> prompts, images uploadées, historique conversations, IP, user-agent, logs techniques<br>
+<strong>Paiement :</strong> géré par Stripe (nous ne stockons pas ta carte)</p>
+<p><b>2. Pourquoi ?</b><br>
+Fournir le service IA<br>Créer et gérer ton compte<br>Facturer l'abonnement Premium<br>Sécuriser la plateforme (anti-abus)<br>Support client<br>Amélioration (données anonymisées uniquement)<br>Obligations légales</p>
+<p><b>3. Bases légales (RGPD art.6)</b><br>
+Contrat (art.6.1.b)<br>Intérêt légitime (sécurité)<br>Obligation légale (comptabilité)<br>Consentement (cookies non essentiels)</p>
+<p><b>4. Hébergement</b><br>
+Site : Vercel Inc. (USA)<br>Base de données : Supabase (infrastructure AWS UE/US)<br>Emails : Resend<br>IA : OpenAI<br>Paiement : Stripe<br>Transferts hors UE encadrés par Clauses Contractuelles Types.</p>
+<p><b>5. Durées</b><br>
+Compte actif : conservation<br>Après suppression : 30 jours puis effacement définitif<br>Logs sécurité : 12 mois<br>Factures : 10 ans (loi belge)</p>
+<p><b>6. Partage</b><br>Aucune vente de données. Partage uniquement avec sous-traitants techniques listés ci-dessus, ou sur réquisition judiciaire.</p>
+<p><b>7. Tes droits</b><br>Accès, rectification, effacement, limitation, portabilité, opposition. Exercice : envoie un email à officialvaltrix.ai@gmail.com avec ton email de compte. Réponse sous 30 jours.</p>
+<p><b>8. Sécurité</b><br>Chiffrement HTTPS, mots de passe hashés, accès base limité. Aucun système n'est infaillible.</p>
+<p><b>9. Mineurs</b><br>Service interdit aux moins de 15 ans. Si on découvre un compte <15 ans, suppression immédiate.</p>
+<p><b>10. Cookies</b><br>Uniquement cookies techniques essentiels (session). Pas de tracking publicitaire.</p>
+<p><b>11. Contact DPO</b><br>Charly Van Grimbergen – officialvaltrix.ai@gmail.com<br>Réclamation : Autorité de protection des données (Belgique) – https://www.autoriteprotectiondonnees.be</p>`;
+
+window.showCGU = function(){ document.getElementById('legal-title').innerText='Conditions Générales'; document.getElementById('legal-content').innerHTML=window.CGU_TEXT; document.getElementById('legal-modal').style.display='flex'; };
+window.showPrivacy = function(){ document.getElementById('legal-title').innerText='Politique de Confidentialité'; document.getElementById('legal-content').innerHTML=window.PRIVACY_TEXT; document.getElementById('legal-modal').style.display='flex'; };
+window.closeLegal = function(){ document.getElementById('legal-modal').style.display='none'; };
 </script>
 </body>
 </html>
