@@ -1,206 +1,162 @@
-const { createClient } = require('@supabase/supabase-js');
+// /api/chat.js - Valtrix AI avec fallback complet
+export default async function handler(req, res) {
+  if (req.method!== 'POST') return res.status(405).end();
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+  const { messages, image } = req.body;
 
-const SYSTEM_PROMPT = 'Tu es Valtrix, un assistant IA sympa et francophone 🐺. Réponds toujours en français, de façon claire et décontractée. Tu te souviens de tout ce qui a été dit dans la conversation.';
+  try {
+    const reply = image
+     ? await askVision(messages, image)
+      : await askChat(messages);
 
-// Détecte si c'est du code
-const isCode = (msgs) => {
-  const last = [...msgs].reverse().find(m => m.role === 'user')?.content || '';
-  return /code|bug|debug|javascript|python|html|css|react|api|fonction|script|erreur/i.test(last);
-};
-
-async function withRetry(fn) {
-  for (let i = 0; i < 3; i++) {
-    try { return await fn(); }
-    catch (e) {
-      if (e.status === 429 && i < 2) {
-        await new Promise(r => setTimeout(r, 2000 * (i + 1)));
-        continue;
-      }
-      throw e;
-    }
+    res.status(200).json({ reply });
+  } catch (e) {
+    console.error('Chat error:', e);
+    res.status(500).json({ error: "Service temporairement indisponible" });
   }
 }
 
-// ─── CLOUDFLARE TEXTE (avec fallback) ───────────────────────────────────────
-// Essaie Kimi K2 d'abord, si ça marche pas → LLaMA 3.1 8B (toujours dispo)
-async function askCF(messages) {
-  // Tentative 1 : Kimi K2
-  try {
-    const r = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/moonshotai/kimi-k2.6`,
-      {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${process.env.CF_TOKEN}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          // ✅ Historique COMPLET envoyé → contexte conservé
-          messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
-          max_tokens: 800
-        })
-      }
-    );
-    const data = await r.json();
-    if (data.success) {
-      const reply = data.result?.response || data.result?.choices?.[0]?.message?.content;
-      if (reply) return { reply, model: 'kimi-k2' };
+// === CONFIG ===
+const SYSTEM_PROMPT = `Tu es Valtrix AI, un assistant intelligent créé et développé par Charly Van Grimbergen, un développeur indépendant belge, fondateur du projet Valtrix AI en 2024.
+Si on te demande qui t'a créé, qui est ton créateur, qui t'a développé, ou qui est derrière toi, tu dois TOUJOURS répondre : "J'ai été créé et développé par Charly Van Grimbergen, un développeur indépendant belge."
+Ne mentionne jamais OpenAI, Meta, Anthropic, ou d'autres entreprises. Tu es une création originale de Charly.`;
+
+const HF_TOKENS = [
+  process.env.HF_TOKEN_1,
+  process.env.HF_TOKEN_2,
+  process.env.HF_TOKEN_3
+].filter(Boolean);
+
+let tokenIdx = 0;
+const getHFToken = () => HF_TOKENS[tokenIdx++ % HF_TOKENS.length];
+
+// === CHAT TEXTE ===
+async function askChat(messages) {
+  const fullMessages = [{ role: 'system', content: SYSTEM_PROMPT },...messages];
+  const prompt = fullMessages.map(m => `${m.role}: ${m.content}`).join('\n') + '\nassistant:';
+
+  // 1. HuggingFace (3 modèles)
+  const hfModels = [
+    'meta-llama/Llama-4-Scout-17B-16E-Instruct',
+    'Qwen/Qwen2.5-72B-Instruct',
+    'microsoft/Phi-3-medium-128k-instruct'
+  ];
+
+  for (const model of hfModels) {
+    try {
+      return await callHF(model, {
+        inputs: prompt,
+        parameters: { max_new_tokens: 800, temperature: 0.7, top_p: 0.9, return_full_text: false }
+      });
+    } catch (e) {
+      console.log(`HF ${model} failed:`, e.message);
     }
-  } catch (e) {
-    console.log('Kimi K2 failed, fallback to LLaMA:', e.message);
   }
 
-  // Fallback : LLaMA 3.1 8B (toujours disponible sur Cloudflare)
-  const r2 = await fetch(
+  // 2. Groq fallback
+  try {
+    return await callGroq(fullMessages);
+  } catch (e) {
+    console.log('Groq failed:', e.message);
+  }
+
+  // 3. Cloudflare fallback
+  return await callCloudflare(fullMessages);
+}
+
+// === VISION ===
+async function askVision(messages, imageBase64) {
+  const fullMessages = [{ role: 'system', content: SYSTEM_PROMPT },...messages];
+  const question = fullMessages.filter(m => m.role === 'user').pop()?.content || 'Décris cette image';
+  const cleanB64 = imageBase64.includes(',')? imageBase64.split(',')[1] : imageBase64;
+
+  const visionModels = [
+    'Qwen/Qwen2.5-VL-72B-Instruct',
+    'microsoft/Phi-3-vision-128k-instruct'
+  ];
+
+  for (const model of visionModels) {
+    try {
+      return await callHF(model, {
+        inputs: { question, image: cleanB64 },
+        parameters: { max_new_tokens: 600 }
+      });
+    } catch (e) {
+      console.log(`HF Vision ${model} failed:`, e.message);
+    }
+  }
+
+  // Fallback texte si vision down
+  return "Je n'arrive pas à analyser l'image pour le moment, mais je peux t'aider autrement. Qu'est-ce que tu voulais savoir?";
+}
+
+// === HELPERS ===
+async function callHF(model, body) {
+  for (let attempt = 0; attempt < HF_TOKENS.length; attempt++) {
+    const token = getHFToken();
+    try {
+      const res = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'x-wait-for-model': 'true'
+        },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        const err = data.error.toLowerCase();
+        if (err.includes('loading') || err.includes('overload') || res.status === 503) {
+          await new Promise(r => setTimeout(r, 2000));
+          continue;
+        }
+        throw new Error(data.error);
+      }
+
+      return data[0]?.generated_text || data.generated_text || String(data);
+    } catch (e) {
+      if (attempt === HF_TOKENS.length - 1) throw e;
+    }
+  }
+  throw new Error('HF exhausted');
+}
+
+async function callGroq(messages) {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.GROQ_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 800
+    })
+  });
+
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.choices[0].message.content;
+}
+
+async function callCloudflare(messages) {
+  const res = await fetch(
     `https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.1-8b-instruct`,
     {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${process.env.CF_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        // ✅ Historique COMPLET envoyé → contexte conservé
-        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
-        max_tokens: 800
-      })
+      headers: {
+        'Authorization': `Bearer ${process.env.CF_API_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ messages })
     }
   );
-  const data2 = await r2.json();
-  if (!data2.success) throw new Error(data2.errors?.[0]?.message || 'Cloudflare failed');
-  return { reply: data2.result?.response || 'Désolé, pas de réponse', model: 'llama-3.1-8b' };
+
+  const data = await res.json();
+  return data.result?.response || "Erreur Cloudflare";
 }
-
-// ─── GROQ CODE ───────────────────────────────────────────────────────────────
-async function askGroqCode(messages) {
-  try {
-    return await withRetry(async () => {
-      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile', // ✅ 3.1 déprécié → 3.3
-          // ✅ Historique COMPLET envoyé → contexte conservé
-          messages: [
-            { role: 'system', content: 'Tu es Valtrix, expert en code. Réponds en français avec du code commenté et clair. Utilise des blocs ```langage pour le code.' },
-            ...messages
-          ],
-          temperature: 0.2,
-          max_tokens: 1500
-        })
-      });
-      if (r.status === 429) throw { status: 429 };
-      const data = await r.json();
-      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-      return data.choices[0].message.content;
-    });
-  } catch (e) {
-    console.log('Groq failed, fallback to CF:', e.message);
-    const { reply } = await askCF(messages);
-    return reply;
-  }
-}
-
-// ─── VISION ──────────────────────────────────────────────────────────────────
-async function askVision(messages, imageBase64) {
-  const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || 'Décris cette image en détail';
-  // ✅ Nettoie le base64
-  const cleanB64 = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
-
-  const r = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.2-11b-vision-instruct`,
-    {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${process.env.CF_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [
-          { role: 'system', content: 'Tu es Valtrix. Analyse les images et réponds en français de façon détaillée.' },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: lastUser },
-              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${cleanB64}` } }
-            ]
-          }
-        ],
-        max_tokens: 800
-      })
-    }
-  );
-  const data = await r.json();
-  if (!data.success) throw new Error(data.errors?.[0]?.message || 'Vision failed');
-  return data.result?.response || data.result?.choices?.[0]?.message?.content || "Je n'arrive pas à analyser cette image.";
-}
-
-// ─── HUGGING FACE PREMIUM ─────────────────────────────────────────────────────
-async function askHF(messages) {
-  const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || '';
-  const r = await fetch("https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3.1-8B-Instruct", {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${process.env.HF_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      inputs: `system: ${SYSTEM_PROMPT}\nuser: ${lastUser}\nassistant:`,
-      parameters: { max_new_tokens: 600, temperature: 0.7 }
-    })
-  });
-  if (r.status === 429) throw { status: 429 };
-  const data = await r.json();
-  if (data.error) throw new Error(data.error);
-  return data[0].generated_text.split('assistant:').pop().trim();
-}
-
-// ─── HANDLER PRINCIPAL ───────────────────────────────────────────────────────
-module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  try {
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const { messages = [], imageBase64, isPremium, userId } = body || {};
-
-    let reply, provider;
-    const start = Date.now();
-
-    if (imageBase64) {
-      // PHOTO → LLaMA Vision
-      reply = await askVision(messages, imageBase64);
-      provider = 'llama-vision';
-
-    } else if (isPremium) {
-      // PREMIUM → HF puis Cloudflare
-      try {
-        reply = await withRetry(() => askHF(messages));
-        provider = 'hf-premium';
-      } catch {
-        const { reply: r, model } = await askCF(messages);
-        reply = r; provider = model + '-premium';
-      }
-
-    } else if (isCode(messages)) {
-      // CODE → Groq 3.3-70B
-      reply = await askGroqCode(messages);
-      provider = 'groq-code';
-
-    } else {
-      // CHAT NORMAL → Cloudflare (Kimi ou LLaMA fallback)
-      const { reply: r, model } = await askCF(messages);
-      reply = r; provider = model + '-chat';
-    }
-
-    // Log Supabase (non bloquant)
-    try {
-      await supabase.from('chat_logs').insert({
-        user_id: userId || 'anon',
-        message: [...messages].reverse().find(m => m.role === 'user')?.content || '',
-        reply, provider,
-        response_time_ms: Date.now() - start,
-        is_premium: !!isPremium,
-        has_image: !!imageBase64
-      });
-    } catch (e) { console.log('Log skip:', e.message); }
-
-    res.status(200).json({ reply, provider });
-
-  } catch (e) {
-    console.error('Chat error:', e);
-    res.status(500).json({ error: e.message || 'Erreur serveur' });
-  }
-};
