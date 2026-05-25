@@ -684,9 +684,25 @@ function hideTyping(){ $('typing')?.remove(); }
 let pendingB64 = null, pendingType = null;
 function handleImage(e){
   const file = e.target.files[0]; if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { alert('Image trop lourde (max 5 Mo)'); return; }
+  if (file.size > 10 * 1024 * 1024) { alert('Image trop lourde (max 10 Mo)'); return; }
   const reader = new FileReader();
- reader.onload = ev => { const r = ev.target.result; pendingB64 = r.split(',')[1]; pendingType = file.type; $('img-preview').src = r; $('img-preview-wrap').style.display = 'block'; };
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxW = 800;
+      const ratio = Math.min(1, maxW / img.width);
+      canvas.width  = img.width  * ratio;
+      canvas.height = img.height * ratio;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const compressed = canvas.toDataURL('image/jpeg', 0.7);
+      pendingB64  = compressed.split(',')[1];
+      pendingType = 'image/jpeg';
+      $('img-preview').src = compressed;
+      $('img-preview-wrap').style.display = 'block';
+    };
+    img.src = ev.target.result;
+  };
   reader.readAsDataURL(file);
 }
 function removeImage(){ pendingB64 = null; pendingType = null; $('img-preview-wrap').style.display = 'none'; $('img-input').value = ''; }
