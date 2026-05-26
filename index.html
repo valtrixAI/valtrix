@@ -213,16 +213,21 @@
   </div>
 
   <!-- Champs inscription uniquement -->
-  <div id="reg-fields" class="hidden">
-    <div class="row2">
-      <div class="field"><label>Prénom <span style="color:var(--g1)">*</span></label><input type="text" id="reg-fn" placeholder="Jean"/></div>
-      <div class="field"><label>Nom <span style="color:var(--muted);font-size:.65rem">(facultatif)</span></label><input type="text" id="reg-ln" placeholder="Dupont"/></div>
-    </div>
-    <div class="field" style="margin-top:.7rem">
-      <label>Date de naissance <span style="color:var(--g1)">*</span></label>
-      <input type="date" id="reg-dob"/>
-    </div>
+ <div id="reg-fields" class="hidden">
+  <div class="row2">
+    <div class="field"><label>Prénom <span style="color:var(--g1)">*</span></label><input type="text" id="reg-fn" placeholder="Jean"/></div>
+    <div class="field"><label>Nom <span style="color:var(--muted);font-size:.65rem">(facultatif)</span></label><input type="text" id="reg-ln" placeholder="Dupont"/></div>
   </div>
+  <div class="field" style="margin-top:.7rem">
+    <label>Date de naissance <span style="color:var(--g1)">*</span></label>
+    <input type="date" id="reg-dob" onchange="checkAge()"/>
+  </div>
+  <!-- Case accord parental (visible seulement 13-15 ans) -->
+  <div id="parental-wrap" class="hidden" style="margin-top:.7rem;display:flex;align-items:flex-start;gap:.6rem;font-size:.78rem;color:var(--muted);padding:.4rem;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;">
+    <input type="checkbox" id="parental-check" style="margin-top:2px;accent-color:var(--g1);width:15px;height:15px;flex-shrink:0;"/>
+    <label for="parental-check">👨‍👩‍👦 Mon parent ou tuteur légal a lu et accepte les <a href="/cgu" target="_blank" style="color:var(--g1);font-weight:600">CGU</a> et la <a href="/privacy" target="_blank" style="color:var(--g1);font-weight:600">Politique de confidentialité</a> de Valtrix AI, et autorise mon inscription.</label>
+  </div>
+</div>
 
   <div class="field"><label>Email</label><input type="email" id="auth-email" placeholder="votre@email.com"/></div>
   <div class="field"><label>Mot de passe</label><input type="password" id="auth-pw" placeholder="••••••" onkeydown="if(event.key==='Enter')doAuth()"/></div>
