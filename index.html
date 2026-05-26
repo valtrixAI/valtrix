@@ -449,10 +449,10 @@ if (!dob) { showErr('auth-err', '⚠️ La date de naissance est obligatoire.');
 const age = Math.floor((Date.now() - new Date(dob)) / (365.25 * 24 * 60 * 60 * 1000));
 if (age < 13) { showErr('auth-err', '⚠️ Tu dois avoir au moins 13 ans pour créer un compte sur Valtrix.'); btn.disabled = false; btn.textContent = 'Créer mon compte →'; return; }
 if (age >= 13 && age < 15 && !$('parental-check').checked) { showErr('auth-err', '⚠️ L\'accord parental est obligatoire pour les moins de 15 ans.'); btn.disabled = false; btn.textContent = 'Créer mon compte →'; return; }
-const parental_consent = age >= 13 && age < 15;15) { showErr('auth-err', '⚠️ Tu dois avoir au moins 15 ans pour créer un compte.'); btn.disabled = false; btn.textContent = 'Créer mon compte →'; return; }
+const parental_consent = age >= 13 && age < 15;
 
     try {
-      const res = await fetch('/api/auth', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'register', email, password:pw, firstname:fn, lastname:ln, dob, age})});
+     const res = await fetch('/api/auth', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'register', email, password:pw, firstname:fn, lastname:ln, dob, age, parental_consent})});
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       pendingEmail = email;
