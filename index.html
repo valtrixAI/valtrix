@@ -978,5 +978,62 @@ window.showCGU = function(){ document.getElementById('legal-title').innerText='C
 window.showPrivacy = function(){ document.getElementById('legal-title').innerText='Politique de Confidentialité'; document.getElementById('legal-content').innerHTML=window.PRIVACY_TEXT; document.getElementById('legal-modal').style.display='flex'; };
 window.closeLegal = function(){ document.getElementById('legal-modal').style.display='none'; };
 </script>
+<!-- MODAL CHANGEMENT MOT DE PASSE -->
+<div id="pw-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:1.8rem;max-width:360px;width:90%;font-family:'Sora',sans-serif;display:flex;flex-direction:column;gap:.8rem">
+    <h3 style="margin:0;font-size:1.1rem;font-weight:700" class="grad">🔑 Changer le mot de passe</h3>
+    <div class="field"><label>Mot de passe actuel</label><input type="password" id="pw-current" placeholder="••••••••"/></div>
+    <div class="field"><label>Nouveau mot de passe</label><input type="password" id="pw-new" placeholder="••••••••"/></div>
+    <div class="field"><label>Confirmer</label><input type="password" id="pw-confirm" placeholder="••••••••"/></div>
+    <div id="pw-msg" style="font-size:.8rem;display:none;text-align:center"></div>
+    <button onclick="doChangePassword()" class="btn btn-main">Modifier →</button>
+    <button onclick="$('pw-modal').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:.82rem;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
+<script>
+function toggleAccountMenu() {
+  const menu = $('sb-account-menu');
+  const arrow = $('sb-arrow');
+  const open = menu.style.display === 'block';
+  menu.style.display = open ? 'none' : 'block';
+  arrow.textContent = open ? '▼' : '▲';
+}
+
+function showChangePassword() {
+  $('pw-current').value = '';
+  $('pw-new').value = '';
+  $('pw-confirm').value = '';
+  $('pw-msg').style.display = 'none';
+  $('pw-modal').style.display = 'flex';
+  closeSidebar();
+}
+
+async function doChangePassword() {
+  const current = $('pw-current').value;
+  const nw = $('pw-new').value;
+  const confirm = $('pw-confirm').value;
+  const msg = $('pw-msg');
+
+  if (!current || !nw || !confirm) { msg.textContent = '⚠️ Remplissez tous les champs'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+  if (nw.length < 6) { msg.textContent = '⚠️ Minimum 6 caractères'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+  if (nw !== confirm) { msg.textContent = '⚠️ Les mots de passe ne correspondent pas'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+
+  msg.textContent = 'Modification...'; msg.style.color = '#888'; msg.style.display = 'block';
+
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ action: 'changePassword', email: currentUser.email, password: current, newPassword: nw })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    msg.textContent = '✅ Mot de passe modifié !'; msg.style.color = '#16a34a';
+    setTimeout(() => { $('pw-modal').style.display = 'none'; }, 1500);
+  } catch(e) {
+    msg.textContent = '⚠️ ' + e.message; msg.style.color = '#dc2626';
+  }
+}
+</script>
 </body>
 </html>
