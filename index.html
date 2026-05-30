@@ -566,7 +566,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ════ SIDEBAR ════
-function openSidebar(){ $('sidebar').classList.add('open'); $('overlay').classList.add('show'); }
+function openSidebar() {
+  $('sidebar').classList.add('open');
+  $('overlay').classList.add('show');
+  if (currentUser) {
+    $('sb-username').textContent = currentUser.firstname + (currentUser.lastname ? ' ' + currentUser.lastname : '');
+    $('sb-email').textContent = currentUser.email;
+  }
+}
 function closeSidebar(){ $('sidebar').classList.remove('open'); $('overlay').classList.remove('show'); }
 
 async function loadChatHistory(){
