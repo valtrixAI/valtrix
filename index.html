@@ -378,6 +378,16 @@ function updateAuthBtn(){
     $('auth-btn').disabled = false;
   }
 }
+  function checkAge() {
+  const dob = $('reg-dob').value;
+  if (!dob) return;
+  const age = Math.floor((Date.now() - new Date(dob)) / (365.25 * 24 * 60 * 60 * 1000));
+  if (age >= 13 && age < 15) {
+    $('parental-wrap').classList.remove('hidden');
+  } else {
+    $('parental-wrap').classList.add('hidden');
+  }
+}
 
 // ════ CODE VÉRIFICATION ════
 let pendingEmail = '';
