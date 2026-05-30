@@ -861,7 +861,7 @@ async function forgotReset(){
 const ADMIN_EMAIL = 'charlyvangrim@gmail.com';
 
 function initAdmin() {
-  if (currentUser?.email === ADMIN_EMAIL) $('adminPanel').style.display = 'block';
+  if ($('sb-admin')) $('sb-admin').style.display = 'block';
   checkMaintenance();
 }
 
