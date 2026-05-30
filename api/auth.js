@@ -1,13 +1,11 @@
 const { createClient } = require('@supabase/supabase-js');
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
-
 const RESEND_KEY = process.env.RESEND_KEY;
 
-// hash simple
+// ✅ Hash original conservé (sinon les anciens mots de passe ne marchent plus)
 const hash = (str) => {
   let h = 0;
   for (let i = 0; i < str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
@@ -19,10 +17,7 @@ const code6 = () => Math.floor(100000 + Math.random() * 900000).toString();
 async function sendCode(email, firstname, code) {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${RESEND_KEY}`,
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from: 'Valtrix <hello@aivaltrix.com>',
       to: email,
@@ -37,51 +32,52 @@ async function sendCode(email, firstname, code) {
         </div>`
     })
   });
-  
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err);
-  }
+  if (!res.ok) { const err = await res.text(); throw new Error(err); }
 }
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Content-Type', 'application/json');
-  
   if (req.method === 'OPTIONS') return res.end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const { action, email, password, firstname, lastname, code } = body;
+    const { action, email, password, firstname, lastname, code, dob, parental_consent, newPassword } = body;
     const mail = email?.toLowerCase().trim();
 
-    // REGISTER
+    // ── INSCRIPTION ──────────────────────────────────────────────────────────
     if (action === 'register') {
       if (!mail || !password || !firstname) throw new Error('Champs manquants');
       if (password.length < 6) throw new Error('6 caractères min');
+      if (!dob) throw new Error('La date de naissance est obligatoire');
+
+      const age = Math.floor((Date.now() - new Date(dob)) / (365.25 * 24 * 60 * 60 * 1000));
+      if (age < 13) throw new Error('Tu dois avoir au moins 13 ans pour créer un compte sur Valtrix.');
+      if (age >= 13 && age < 15 && !parental_consent) throw new Error("L'accord parental est obligatoire pour les moins de 15 ans.");
 
       const { data: exist } = await supabase.from('users').select('id').eq('email', mail).maybeSingle();
       if (exist) throw new Error('Email déjà utilisé');
 
       const verifyCode = code6();
-      const exp = Date.now() + 600000;
-
       await supabase.from('verifications').upsert({
         email: mail,
         code: verifyCode,
-        exp,
+        exp: Date.now() + 600000,
         password: hash(password),
         firstname,
-        lastname: lastname || ''
+        lastname: lastname || '',
+        dob,
+        age,
+        parental_consent: !!parental_consent
       });
 
       await sendCode(mail, firstname, verifyCode);
       return res.json({ success: true });
     }
 
-    // VERIFY
+    // ── VÉRIFICATION CODE ─────────────────────────────────────────────────────
     if (action === 'verify') {
       const { data: v } = await supabase.from('verifications').select('*').eq('email', mail).maybeSingle();
       if (!v) throw new Error('Aucun code');
@@ -89,26 +85,44 @@ module.exports = async (req, res) => {
       if (v.code !== code) throw new Error('Code incorrect');
 
       const { data: user } = await supabase.from('users').insert({
-        email: mail,
-        password: v.password,
-        firstname: v.firstname,
-        lastname: v.lastname,
-        premium: false
+        email:            mail,
+        password:         v.password,
+        firstname:        v.firstname,
+        lastname:         v.lastname,
+        premium:          false,
+        dob:              v.dob || null,
+        age:              v.age || null,
+        cgu_accepted:     true,
+        cgu_accepted_at:  new Date().toISOString(),
+        parental_consent: v.parental_consent || false
       }).select().single();
 
       await supabase.from('verifications').delete().eq('email', mail);
       return res.json({ success: true, user });
     }
 
-    // LOGIN
+    // ── CONNEXION ─────────────────────────────────────────────────────────────
     if (action === 'login') {
       const { data: user } = await supabase.from('users').select('*').eq('email', mail).maybeSingle();
       if (!user || user.password !== hash(password)) throw new Error('Identifiants incorrects');
+      delete user.password;
       return res.json({ success: true, user });
     }
 
+    // ── CHANGEMENT MOT DE PASSE ───────────────────────────────────────────────
+    if (action === 'changePassword') {
+      if (!mail || !password || !newPassword) throw new Error('Champs manquants');
+      if (newPassword.length < 6) throw new Error('Nouveau mot de passe trop court (6 min)');
+
+      const { data: user } = await supabase.from('users').select('*').eq('email', mail).maybeSingle();
+      if (!user || user.password !== hash(password)) throw new Error('Mot de passe actuel incorrect');
+
+      await supabase.from('users').update({ password: hash(newPassword) }).eq('email', mail);
+      return res.json({ success: true });
+    }
+
     throw new Error('Action inconnue');
-    
+
   } catch (e) {
     console.error(e);
     return res.status(400).json({ error: e.message });
