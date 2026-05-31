@@ -569,10 +569,14 @@ document.addEventListener('DOMContentLoaded', () => {
 function openSidebar() {
   $('sidebar').classList.add('open');
   $('overlay').classList.add('show');
-  if (currentUser) {
-    $('sb-username').textContent = currentUser.firstname + (currentUser.lastname ? ' ' + currentUser.lastname : '');
-    $('sb-email').textContent = currentUser.email;
-  }
+  try {
+    if (currentUser && $('sb-username')) {
+      $('sb-username').textContent = currentUser.firstname + (currentUser.lastname ? ' ' + currentUser.lastname : '');
+    }
+    if (currentUser && $('sb-email')) {
+      $('sb-email').textContent = currentUser.email;
+    }
+  } catch(e) {}
 }
 function closeSidebar(){ $('sidebar').classList.remove('open'); $('overlay').classList.remove('show'); }
 
